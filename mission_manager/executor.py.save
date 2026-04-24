@@ -1,52 +1,40 @@
 from pymavlink import mavutil
-import time
 
 class Executor:
     def __init__(self, connection):
         self.connection = connection
         print("Executor initialized")
-
-    def arm_and_takeoff(self, altitude=100):
-     print("Setting mode to GUIDED...")
-     self.connection.mav.command_long_send(
+def arm_and_takeoff(self, altitude=100):
+    print("Setting mode to GUIDED...")
+    self.connection.mav.command_long_send(
         0, 0,
         mavutil.mavlink.MAV_CMD_DO_SET_MODE,
         0, 1,
         mavutil.mavlink.PLANE_MODE_GUIDED,
         0, 0, 0, 0, 0
-     )
-     time.sleep(2)
+    )
 
-     print("Arming throttle...")
-     self.connection.mav.command_long_send(
+    import time
+    time.sleep(2)
+
+    print("Arming throttle...")
+    self.connection.mav.command_long_send(
         0, 0,
         mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
-        0, 1, 21196, 0, 0, 0, 0, 0
-     )
-     time.sleep(2)
+        0, 1, 0, 0, 0, 0, 0, 0
+    )
 
-     print("Switching to TAKEOFF mode...")
-     self.connection.mav.command_long_send(
+    time.sleep(2)
+
+    print(f"Taking off to {altitude}m...")
+    self.connection.mav.command_long_send(
         0, 0,
-        mavutil.mavlink.MAV_CMD_DO_SET_MODE,
-        0, 1,
-        mavutil.mavlink.PLANE_MODE_TAKEOFF,
-        0, 0, 0, 0, 0
-     )
-     time.sleep(10)
-     print("Takeoff sequence complete")
-     print("Switching back to GUIDED mode...")
-     self.connection.mav.command_long_send(
-      0, 0,
-     mavutil.mavlink.MAV_CMD_DO_SET_MODE,
-     0, 1,
-     mavutil.mavlink.PLANE_MODE_GUIDED,
-     0, 0, 0, 0, 0
-     )
-     time.sleep(2)
-     print("Ready for waypoint commands")
+        mavutil.mavlink.MAV_CMD_NAV_TAKEOFF,
+        0, 0, 0, 0, 0, 0, 0, altitude
+    )
 
-
+    time.sleep(5)
+    print("Takeoff complete")
     def execute(self, command):
         cmd = command.get("command")
         params = command.get("params", {})
