@@ -1,6 +1,9 @@
 import json
 import requests
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 OLLAMA_URL = f"http://{os.getenv('OLLAMA_HOST', 'localhost')}:11434/api/generate"
 MODEL = "llama3.2:1b"

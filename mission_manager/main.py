@@ -10,7 +10,7 @@ def main():
     print("Starting mission manager...")
 
     telemetry = TelemetryListener(CONNECTION_STRING)
-    planner = Planner(stub=True)
+    planner = Planner(stub=False)
     executor = Executor(telemetry.connection)
     executor.arm_and_takeoff(altitude=100)
 
