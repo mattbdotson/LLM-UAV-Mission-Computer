@@ -55,16 +55,26 @@ class Executor:
             self._goto_waypoint(
                 params["lat"],
                 params["lon"],
-                params["alt"]
+                params.get("alt", 100)
+            )
+        elif cmd == "loiter":
+            self._loiter(
+                params["lat"],
+                params["lon"],
+                params.get("alt", 100),
+                params.get("radius", 500)
             )
         elif cmd == "rtl":
             self._rtl()
         else:
             print(f"Unknown command: {cmd}")
 
-    def _goto_waypoint(self, lat, lon, alt):
-        print(f"Executing goto_waypoint: lat={lat}, lon={lon}, alt={alt}")
-        self.connection.mav.mission_item_int_send(
+    def _goto_waypoint(self, lat, lon, alt=100):
+         lat, lon, alt = float(lat), float(lon), float(alt)
+         alt = max(alt, 50)  # never fly below 50m
+         print(f"Executing goto_waypoint: lat={lat}, lon={lon}, alt={alt}")
+
+         self.connection.mav.mission_item_int_send(
             0, 0, 0,
             mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT,
             mavutil.mavlink.MAV_CMD_NAV_WAYPOINT,
@@ -81,3 +91,14 @@ class Executor:
             mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH,
             0, 0, 0, 0, 0, 0, 0, 0
         )
+
+    def _loiter(self, lat, lon, alt, radius=1000):
+     lat, lon, alt, radius = float(lat), float(lon), float(alt), float(radius)
+     print(f"Executing loiter: lat={lat}, lon={lon}, alt={alt}, radius={radius}")
+     self.connection.mav.command_long_send(
+        0, 0,
+        mavutil.mavlink.MAV_CMD_NAV_LOITER_UNLIM,
+        0,
+        0, 0, radius, 0,
+        lat, lon, alt
+    )

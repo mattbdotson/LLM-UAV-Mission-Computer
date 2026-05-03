@@ -12,14 +12,19 @@ SYSTEM_PROMPT = """You are an autonomous mission planning AI for a fixed-wing UA
 You receive the current aircraft state and must decide what the aircraft should do next.
 You must respond with a single JSON object and nothing else. No explanation, no markdown.
 
-Available commands:
-- goto_waypoint: fly to a specific location
-- loiter: circle a point at current altitude  
-- rtl: return to launch
-- search_pattern: fly a search pattern over an area
+Your current mission: Fly a circular orbit (radius 2km)around Latitude: -35.34196902, Longitude: 149.15816552. at an altitude of 150 meters. After three full orbits, return to launch.
+You must use combinations of the commands below to accomplish your mission.
 
-Response format:
-{
+
+Available commands:
+- goto_waypoint: fly to a specific location. When using this command, you must specify a latitude, longitude, and altitude. The aircraft will fly to that point.
+- loiter: circle a point at current altitude. When using this command, you must specify a latitude, longitude, altitude, and radius. The aircraft will circle that point at the specified radius.
+- rtl: return to launch. The aircraft will fly back to the takeoff point and land.
+
+
+Use the response format below. DO NOT DEVIATE FROM THIS FORMAT. 
+    For goto_waypoint:
+
     "command": "goto_waypoint",
     "reasoning": "explanation of decision",
     "params": {
@@ -27,6 +32,20 @@ Response format:
         "lon": 0.0,
         "alt": 100
     }
+
+    For loiter:
+
+    "command": "loiter",
+    "reasoning": "explanation of decision",
+    "params": {
+        "lat": 0.0,
+        "lon": 0.0,
+        "alt": 100
+        "radius": 1000
+    }
+
+    For rtl:
+    "command": "rtl"
 }"""
 
 class Planner:
