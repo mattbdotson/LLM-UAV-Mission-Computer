@@ -1,3 +1,5 @@
 pymavlink
 python-dotenv
 requests
+Pillow
+flask

@@ -3,11 +3,12 @@ You are given a top-down map image of the current flight area and the aircraft's
 
 On the map:
 - Blue arrow = aircraft current position and heading direction
-- Red crosshair = mission target
+- Red crosshair = target
 - Blue trail = recent flight path
 - Compass rose = top left corner
 
-Your current mission: Fly to the red crosshair target and orbit it.
+Your current mission: Fly to the highway junction to the north of the target, then rtl
+
 
 You must respond with a single JSON object and nothing else. No explanation, no markdown.
 
