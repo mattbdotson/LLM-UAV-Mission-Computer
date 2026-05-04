@@ -11,51 +11,17 @@ VILA_HOST = os.getenv('VILA_HOST', 'localhost')
 VILA_PORT = os.getenv('VILA_PORT', '5000')
 VILA_URL = f"http://{VILA_HOST}:{VILA_PORT}/generate"
 
-SYSTEM_PROMPT = """You are an autonomous mission planning AI for a fixed-wing UAV.
-You are given a top-down map image of the current flight area and the aircraft's current state.
-
-On the map:
-- Blue arrow = aircraft current position and heading direction
-- Red crosshair = mission target
-- Blue trail = recent flight path
-- Compass rose = top left corner
-
-Your current mission: Fly to the red crosshair target and orbit it.
-
-You must respond with a single JSON object and nothing else. No explanation, no markdown.
-
-Response format:
-{
-    "command": "goto_pixel",
-    "reasoning": "explanation of what you see and why",
-    "params": {
-        "x": 200,
-        "y": 200
-    }
-}
-
-Where x and y are pixel coordinates (0-384) on the map image indicating where the aircraft should fly next.
-Or use these commands instead if appropriate:
-{
-    "command": "loiter",
-    "reasoning": "explanation",
-    "params": {
-        "x": 200,
-        "y": 200,
-        "radius": 500,
-        "alt": 150
-    }
-}
-{
-    "command": "rtl",
-    "reasoning": "explanation",
-    "params": {}
-}"""
+def load_prompt(filename):
+    prompt_path = os.path.join(os.path.dirname(__file__), 'prompts', filename)
+    with open(prompt_path, 'r') as f:
+        return f.read()
 
 class Planner:
     def __init__(self, stub=False):
         self.stub = stub
         self.compositor = MapCompositor(MAP_TILE_PATH, MAP_BOUNDS)
+        self.system_prompt = load_prompt('system_prompt.txt')
+        self.user_prompt_template = load_prompt('user_prompt.txt')
         print(f"Planner initialized ({'stub' if stub else 'VLM'} mode)")
 
     def decide(self, state):
@@ -71,12 +37,16 @@ class Planner:
             print("Map composition failed — falling back to RTL")
             return {"command": "rtl", "reasoning": "Map error", "params": {}}
 
-        prompt = f"Current aircraft state: alt={state.get('alt', 0):.0f}m, heading={state.get('heading', 0):.0f}°, airspeed={state.get('airspeed', 0):.0f}m/s\n\nWhat should the aircraft do next?"
+        prompt = self.user_prompt_template.format(
+            alt=f"{state.get('alt', 0):.0f}",
+            heading=f"{state.get('heading', 0):.0f}",
+            airspeed=f"{state.get('airspeed', 0):.0f}"
+        )
 
         try:
             response = requests.post(VILA_URL, json={
                 "prompt": prompt,
-                "system": SYSTEM_PROMPT,
+                "system": self.system_prompt,
                 "image": image_b64,
                 "stream": False
             }, timeout=60)
@@ -87,6 +57,9 @@ class Planner:
             print(f"Planner decision: {json.dumps(command, indent=2)}")
             return command
 
+        except json.JSONDecodeError as e:
+            print(f"JSON parse error: {e} — falling back to RTL")
+            return {"command": "rtl", "reasoning": "Parse error", "params": {}}
         except Exception as e:
             print(f"VLM error: {e} — falling back to RTL")
             return {"command": "rtl", "reasoning": "VLM error", "params": {}}

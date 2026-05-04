@@ -1,0 +1,3 @@
+Current aircraft state: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
+
+What should the aircraft do next?
