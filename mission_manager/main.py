@@ -1,6 +1,7 @@
 import time
 import os
 import subprocess
+import requests as req
 from telemetry import TelemetryListener
 from planner import Planner
 from executor import Executor
@@ -26,6 +27,23 @@ def start_sitl():
     print("SITL ready.")
     return sitl_process
 
+def wait_for_vila(host, port, timeout=120):
+    import time
+    url = f"http://{host}:{port}/health"
+    print(f"Waiting for VILA server at {url}...")
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            r = req.get(url, timeout=3)
+            if r.status_code == 200:
+                print("VILA server is ready")
+                return True
+        except:
+            pass
+        time.sleep(3)
+    print("VILA server timeout — proceeding anyway")
+    return False
+
 def main():
     print("Starting mission manager...")
 
@@ -34,6 +52,10 @@ def main():
     telemetry = TelemetryListener(CONNECTION_STRING)
     planner = Planner(stub=False)
     executor = Executor(telemetry.connection)
+
+    vila_host = os.getenv('VILA_HOST', 'localhost')
+    vila_port = os.getenv('VILA_PORT', '5000')
+    wait_for_vila(vila_host, vila_port)
 
 
     executor.arm_and_takeoff(altitude=100)
@@ -55,6 +77,8 @@ def main():
                 last_plan_time = current_time
 
         time.sleep(0.1)
+
+
 
 if __name__ == "__main__":
     main()
