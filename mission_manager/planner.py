@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OLLAMA_URL = f"http://{os.getenv('OLLAMA_HOST', 'localhost')}:11434/api/generate"
-MODEL = "llama3.2:1b"
+MODEL = "llama3.2:3b-instruct-q2_K"
 
 SYSTEM_PROMPT = """You are an autonomous mission planning AI for a fixed-wing UAV.
 You receive the current aircraft state and must decide what the aircraft should do next.
@@ -68,8 +68,8 @@ class Planner:
                 "prompt": prompt,
                 "system": SYSTEM_PROMPT,
                 "stream": False
-            })
-            
+            }, timeout=60)
+
             raw = response.json()["response"]
             print(f"LLM raw response: {raw}")
             command = json.loads(raw)

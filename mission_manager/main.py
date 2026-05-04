@@ -1,17 +1,41 @@
 import time
+import os
+import subprocess
 from telemetry import TelemetryListener
 from planner import Planner
 from executor import Executor
 
 CONNECTION_STRING = "udp:localhost:14552"
-PLANNING_INTERVAL = 10  # seconds between planning cycles
+PLANNING_INTERVAL = 10
+
+def start_sitl():
+    print("Starting SITL...")
+    sitl_process = subprocess.Popen(
+        [
+            "sim_vehicle.py",
+            "-v", "ArduPlane",
+            "-f", "plane",
+            "--console",
+            "--map",
+            "--out", "udp:localhost:14552"
+        ],
+        cwd=os.path.expanduser("~/ardupilot/ArduPlane")
+    )
+    print("Waiting for SITL to initialize...")
+    time.sleep(30)
+    print("SITL ready.")
+    return sitl_process
 
 def main():
     print("Starting mission manager...")
 
+    sitl_process = start_sitl()
+
     telemetry = TelemetryListener(CONNECTION_STRING)
     planner = Planner(stub=False)
     executor = Executor(telemetry.connection)
+
+
     executor.arm_and_takeoff(altitude=100)
 
     print("Mission manager running. Press Ctrl+C to stop.")
@@ -23,12 +47,12 @@ def main():
 
         current_time = time.time()
         if current_time - last_plan_time >= PLANNING_INTERVAL:
-          state = telemetry.get_state()
-          if state and "lat" in state and abs(state["lat"]) > 1 and state.get("alt", 0) > 50:
-             print(f"\nCurrent state: {state}")
-             command = planner.decide(state)
-             executor.execute(command)
-             last_plan_time = current_time
+            state = telemetry.get_state()
+            if state and "lat" in state and abs(state["lat"]) > 1 and state.get("alt", 0) > 50:
+                print(f"\nCurrent state: {state}")
+                command = planner.decide(state)
+                executor.execute(command)
+                last_plan_time = current_time
 
         time.sleep(0.1)
 

@@ -1,0 +1,72 @@
+import requests
+import math
+import os
+from PIL import Image
+from io import BytesIO
+
+# SITL default location - Canberra
+CENTER_LAT = -35.3632
+CENTER_LON = 149.1652
+ZOOM = 15
+TILE_SIZE = 256
+
+def lat_lon_to_tile(lat, lon, zoom):
+    n = 2 ** zoom
+    x = int((lon + 180) / 360 * n)
+    y = int((1 - math.log(math.tan(math.radians(lat)) + 
+             1 / math.cos(math.radians(lat))) / math.pi) / 2 * n)
+    return x, y
+
+def tile_to_lat_lon(x, y, zoom):
+    n = 2 ** zoom
+    lon = x / n * 360 - 180
+    lat = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * y / n))))
+    return lat, lon
+
+def download_map(center_lat, center_lon, zoom, radius_tiles=2):
+    cx, cy = lat_lon_to_tile(center_lat, center_lon, zoom)
+    
+    tiles_wide = radius_tiles * 2 + 1
+    tiles_tall = radius_tiles * 2 + 1
+    
+    composite = Image.new('RGB', 
+        (tiles_wide * TILE_SIZE, tiles_tall * TILE_SIZE))
+    
+    for dy in range(-radius_tiles, radius_tiles + 1):
+        for dx in range(-radius_tiles, radius_tiles + 1):
+            tx, ty = cx + dx, cy + dy
+            url = url = url = f"https://tile.openstreetmap.org/{zoom}/{tx}/{ty}.png"
+            
+            headers = {'User-Agent': 'LLM-UAV-Mission-Computer/1.0'}
+            response = requests.get(url, headers=headers)
+            
+            if response.status_code == 200:
+                tile = Image.open(BytesIO(response.content))
+                px = (dx + radius_tiles) * TILE_SIZE
+                py = (dy + radius_tiles) * TILE_SIZE
+                composite.paste(tile, (px, py))
+                print(f"Downloaded tile {tx},{ty}")
+            else:
+                print(f"Failed tile {tx},{ty}: {response.status_code}")
+    
+    # calculate GPS bounds
+    min_lat = tile_to_lat_lon(cx - radius_tiles, cy + radius_tiles + 1, zoom)[0]
+    max_lat = tile_to_lat_lon(cx - radius_tiles, cy - radius_tiles, zoom)[0]
+    min_lon = tile_to_lat_lon(cx - radius_tiles, cy - radius_tiles, zoom)[1]
+    max_lon = tile_to_lat_lon(cx + radius_tiles + 1, cy - radius_tiles, zoom)[1]
+    
+    output_path = os.path.join(os.path.dirname(__file__), 'map_tile.png')
+    composite.save(output_path)
+    
+    print(f"\nMap saved to {output_path}")
+    print(f"Bounds:")
+    print(f"  min_lat: {min_lat}")
+    print(f"  max_lat: {max_lat}")
+    print(f"  min_lon: {min_lon}")
+    print(f"  max_lon: {max_lon}")
+    print(f"  size: {composite.size}")
+    
+    return min_lat, max_lat, min_lon, max_lon
+
+if __name__ == "__main__":
+    bounds = download_map(CENTER_LAT, CENTER_LON, ZOOM, radius_tiles=4)

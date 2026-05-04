@@ -70,20 +70,29 @@ class Executor:
             print(f"Unknown command: {cmd}")
 
     def _goto_waypoint(self, lat, lon, alt=100):
-         lat, lon, alt = float(lat), float(lon), float(alt)
-         alt = max(alt, 50)  # never fly below 50m
-         print(f"Executing goto_waypoint: lat={lat}, lon={lon}, alt={alt}")
-
-         self.connection.mav.mission_item_int_send(
-            0, 0, 0,
-            mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT,
-            mavutil.mavlink.MAV_CMD_NAV_WAYPOINT,
-            2, 1, 0, 0, 0, 0,
-            int(lat * 1e7),
-            int(lon * 1e7),
-            alt
-        )
-
+     lat, lon, alt = float(lat), float(lon), float(alt)
+     alt = max(alt, 50)
+     # ensure we're in GUIDED mode
+     self.connection.mav.command_long_send(
+        0, 0,
+        mavutil.mavlink.MAV_CMD_DO_SET_MODE,
+        0, 1,
+        mavutil.mavlink.PLANE_MODE_GUIDED,
+        0, 0, 0, 0, 0
+     )
+     import time
+     time.sleep(1)
+     print(f"Executing goto_waypoint: lat={lat}, lon={lon}, alt={alt}")
+     self.connection.mav.mission_item_int_send(
+        0, 0, 0,
+        mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT,
+        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT,
+        2, 1, 0, 0, 0, 0,
+        int(lat * 1e7),
+        int(lon * 1e7),
+        alt
+     )
+     
     def _rtl(self):
         print("Executing RTL")
         self.connection.mav.command_long_send(
@@ -92,8 +101,7 @@ class Executor:
             0, 0, 0, 0, 0, 0, 0, 0
         )
 
-    def _loiter(self, lat, lon, alt, radius=1000):
-     lat, lon, alt, radius = float(lat), float(lon), float(alt), float(radius)
+    def _loiter(self, lat, lon, alt, radius=500):
      print(f"Executing loiter: lat={lat}, lon={lon}, alt={alt}, radius={radius}")
      self.connection.mav.command_long_send(
         0, 0,
@@ -101,4 +109,4 @@ class Executor:
         0,
         0, 0, radius, 0,
         lat, lon, alt
-    )
+     )
