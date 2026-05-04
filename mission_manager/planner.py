@@ -2,92 +2,102 @@ import json
 import requests
 import os
 from dotenv import load_dotenv
+from map_compositor import MapCompositor
+from map_config import MAP_TILE_PATH, MAP_BOUNDS, MISSION_TARGET
 
 load_dotenv()
 
-OLLAMA_URL = f"http://{os.getenv('OLLAMA_HOST', 'localhost')}:11434/api/generate"
-MODEL = "llama3.2:3b-instruct-q2_K"
+VILA_HOST = os.getenv('VILA_HOST', 'localhost')
+VILA_PORT = os.getenv('VILA_PORT', '5000')
+VILA_URL = f"http://{VILA_HOST}:{VILA_PORT}/generate"
 
 SYSTEM_PROMPT = """You are an autonomous mission planning AI for a fixed-wing UAV.
-You receive the current aircraft state and must decide what the aircraft should do next.
+You are given a top-down map image of the current flight area and the aircraft's current state.
+
+On the map:
+- Blue arrow = aircraft current position and heading direction
+- Red crosshair = mission target
+- Blue trail = recent flight path
+- Compass rose = top left corner
+
+Your current mission: Fly to the red crosshair target and orbit it.
+
 You must respond with a single JSON object and nothing else. No explanation, no markdown.
 
-Your current mission: Fly a circular orbit (radius 2km)around Latitude: -35.34196902, Longitude: 149.15816552. at an altitude of 150 meters. After three full orbits, return to launch.
-You must use combinations of the commands below to accomplish your mission.
-
-
-Available commands:
-- goto_waypoint: fly to a specific location. When using this command, you must specify a latitude, longitude, and altitude. The aircraft will fly to that point.
-- loiter: circle a point at current altitude. When using this command, you must specify a latitude, longitude, altitude, and radius. The aircraft will circle that point at the specified radius.
-- rtl: return to launch. The aircraft will fly back to the takeoff point and land.
-
-
-Use the response format below. DO NOT DEVIATE FROM THIS FORMAT. 
-    For goto_waypoint:
-
-    "command": "goto_waypoint",
-    "reasoning": "explanation of decision",
+Response format:
+{
+    "command": "goto_pixel",
+    "reasoning": "explanation of what you see and why",
     "params": {
-        "lat": 0.0,
-        "lon": 0.0,
-        "alt": 100
+        "x": 200,
+        "y": 200
     }
+}
 
-    For loiter:
-
+Where x and y are pixel coordinates (0-384) on the map image indicating where the aircraft should fly next.
+Or use these commands instead if appropriate:
+{
     "command": "loiter",
-    "reasoning": "explanation of decision",
+    "reasoning": "explanation",
     "params": {
-        "lat": 0.0,
-        "lon": 0.0,
-        "alt": 100
-        "radius": 1000
+        "x": 200,
+        "y": 200,
+        "radius": 500,
+        "alt": 150
     }
-
-    For rtl:
-    "command": "rtl"
+}
+{
+    "command": "rtl",
+    "reasoning": "explanation",
+    "params": {}
 }"""
 
 class Planner:
     def __init__(self, stub=False):
         self.stub = stub
-        print(f"Planner initialized ({'stub' if stub else 'LLM'} mode)")
+        self.compositor = MapCompositor(MAP_TILE_PATH, MAP_BOUNDS)
+        print(f"Planner initialized ({'stub' if stub else 'VLM'} mode)")
 
     def decide(self, state):
         if self.stub:
             return self._stub_response(state)
         else:
-            return self._llm_response(state)
+            return self._vlm_response(state)
 
-    def _llm_response(self, state):
-        prompt = f"Current aircraft state: {json.dumps(state)}\nWhat should the aircraft do next?"
-        
+    def _vlm_response(self, state):
+        image_b64 = self.compositor.compose(state, MISSION_TARGET)
+
+        if image_b64 is None:
+            print("Map composition failed — falling back to RTL")
+            return {"command": "rtl", "reasoning": "Map error", "params": {}}
+
+        prompt = f"Current aircraft state: alt={state.get('alt', 0):.0f}m, heading={state.get('heading', 0):.0f}°, airspeed={state.get('airspeed', 0):.0f}m/s\n\nWhat should the aircraft do next?"
+
         try:
-            response = requests.post(OLLAMA_URL, json={
-                "model": MODEL,
+            response = requests.post(VILA_URL, json={
                 "prompt": prompt,
                 "system": SYSTEM_PROMPT,
+                "image": image_b64,
                 "stream": False
             }, timeout=60)
 
             raw = response.json()["response"]
-            print(f"LLM raw response: {raw}")
+            print(f"VLM raw response: {raw}")
             command = json.loads(raw)
             print(f"Planner decision: {json.dumps(command, indent=2)}")
             return command
-            
+
         except Exception as e:
-            print(f"LLM error: {e} — falling back to RTL")
-            return {"command": "rtl", "reasoning": "LLM error", "params": {}}
+            print(f"VLM error: {e} — falling back to RTL")
+            return {"command": "rtl", "reasoning": "VLM error", "params": {}}
 
     def _stub_response(self, state):
         response = {
-            "command": "goto_waypoint",
-            "reasoning": "Stub mode - flying to test waypoint",
+            "command": "goto_pixel",
+            "reasoning": "Stub mode - flying toward mission target pixel",
             "params": {
-                "lat": 51.8779,
-                "lon": -2.2918,
-                "alt": 100
+                "x": 193,
+                "y": 192
             }
         }
         print(f"Planner decision: {json.dumps(response, indent=2)}")
