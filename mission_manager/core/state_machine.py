@@ -70,6 +70,14 @@ class StateMachine:
             params=command.get("params", {})
         )
 
+        self.context.add_waypoint_visit(
+            seq=seq,
+            lat=telemetry_state.get('lat', 0),
+            lon=telemetry_state.get('lon', 0),
+            decision=command.get('command'),
+            reasoning=command.get('reasoning', '')
+        )
+
         cmd = command.get("command")
         if cmd == "rtl":
             self.transition_to(MissionState.RETURNING)
