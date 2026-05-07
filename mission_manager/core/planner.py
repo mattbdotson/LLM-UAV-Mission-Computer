@@ -93,6 +93,9 @@ class Planner:
         user_prompt = self._load_event_prompt(event, state, context, event_data)
 
         try:
+            print(f"[Planner] Sending to backend — system prompt length: {len(self.system_prompt)}")
+            print(f"[Planner] Sending to backend — user prompt length: {len(user_prompt)}")
+            print(f"[Planner] Sending to backend — image included: {image_b64 is not None and len(image_b64) > 0}")
             raw = self.backend.generate(
                 system_prompt=self.system_prompt,
                 user_prompt=user_prompt,

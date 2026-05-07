@@ -31,6 +31,7 @@ class LlamaCppBackend(InferenceBackend):
             "temperature": 0.1
         }
 
+        print(f"[LlamaCpp] Request payload — image included: {'image_url' in str(payload)[:200]}")
         response = requests.post(
             f"{self.url}/chat/completions",
             json=payload,
