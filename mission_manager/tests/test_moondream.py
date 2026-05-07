@@ -5,7 +5,6 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 import requests
-import json
 from mapping.map_compositor import MapCompositor
 from config.map_config import MAP_TILE_PATH, MAP_BOUNDS, MISSION_TARGET, VLM_IMAGE_SIZE
 from dotenv import load_dotenv
@@ -71,13 +70,7 @@ def test_image_inference():
 
         print(f"Status: {r.status_code}")
         raw = r.json()["message"]["content"]
-        print(f"Raw response: {raw}")
-
-        try:
-            command = json.loads(raw)
-            print(f"Parsed command: {json.dumps(command, indent=2)}")
-        except json.JSONDecodeError:
-            print("Response was not valid JSON")
+        print(f"Moondream response: {raw}")
 
         return True
     except Exception as e:
