@@ -13,6 +13,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '..', 'config', '.env'))
 
 OLLAMA_HOST = os.getenv('OLLAMA_HOST', 'localhost')
 OLLAMA_PORT = os.getenv('OLLAMA_PORT', '11434')
+OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'llama3.2:1b')
 OLLAMA_URL = f"http://{OLLAMA_HOST}:{OLLAMA_PORT}"
 
 MISSION_MANAGER_DIR = os.path.join(os.path.dirname(__file__), '..')
@@ -29,10 +30,10 @@ def test_health():
         return False
 
 def test_text_only():
-    print("\nTesting moondream text-only inference...")
+    print(f"\nTesting {OLLAMA_MODEL} text-only inference...")
     try:
         r = requests.post(f"{OLLAMA_URL}/api/chat", json={
-            "model": "moondream",
+            "model": OLLAMA_MODEL,
             "messages": [{"role": "user", "content": "What is a waypoint in aviation? Answer in one sentence."}],
             "stream": False
         }, timeout=60)
@@ -44,7 +45,7 @@ def test_text_only():
         return False
 
 def test_image_inference():
-    print("\nTesting moondream image + text inference...")
+    print(f"\nTesting {OLLAMA_MODEL} image + text inference...")
 
     tile_path = os.path.join(MISSION_MANAGER_DIR, 'assets', MAP_TILE_PATH)
     compositor = MapCompositor(tile_path, MAP_BOUNDS, vlm_size=VLM_IMAGE_SIZE)
@@ -59,13 +60,13 @@ def test_image_inference():
 
     try:
         r = requests.post(f"{OLLAMA_URL}/api/chat", json={
-            "model": "moondream",
+            "model": OLLAMA_MODEL,
             "messages": [{"role": "user", "content": "This is a top-down map. There is a blue arrow showing an aircraft position and heading. There is a red circle showing a mission target. Where is the aircraft relative to the red circle? What direction should the aircraft fly to reach the target?", "images": [image_b64]}],
             "stream": False
         }, timeout=120)
 
         print(f"Status: {r.status_code}")
-        print(f"Moondream response: {r.json()['message']['content']}")
+        print(f"VLM response: {r.json()['message']['content']}")
 
         return True
     except Exception as e:
@@ -73,7 +74,7 @@ def test_image_inference():
         return False
 
 if __name__ == "__main__":
-    print("=== Moondream Integration Test ===\n")
+    print(f"=== VLM Integration Test ({OLLAMA_MODEL}) ===\n")
 
     if not test_health():
         print("\nOllama is not reachable. Is it running?")

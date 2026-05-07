@@ -8,7 +8,7 @@ import requests
 import base64
 import json
 from mapping.map_compositor import MapCompositor
-from config.map_config import MAP_TILE_PATH, MAP_BOUNDS, MISSION_TARGET
+from config.map_config import MAP_TILE_PATH, MAP_BOUNDS, MISSION_TARGET, VLM_IMAGE_SIZE
 from dotenv import load_dotenv
 
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', 'config', '.env'))
@@ -49,7 +49,7 @@ def test_image_inference():
     print("\nTesting image + text inference...")
 
     tile_path = os.path.join(MISSION_MANAGER_DIR, 'assets', MAP_TILE_PATH)
-    compositor = MapCompositor(tile_path, MAP_BOUNDS)
+    compositor = MapCompositor(tile_path, MAP_BOUNDS, vlm_size=VLM_IMAGE_SIZE)
     state = {
         "lat": -35.363,
         "lon": 149.165,
