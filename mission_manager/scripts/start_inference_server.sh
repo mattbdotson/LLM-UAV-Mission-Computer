@@ -7,5 +7,5 @@
   --host 0.0.0.0 \
   --port 8080 \
   -c 2048 \
-  --image-min-tokens 70 \
-  --image-max-tokens 70
+  --image-min-tokens 256 \
+  --image-max-tokens 256
