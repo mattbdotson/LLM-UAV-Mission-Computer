@@ -24,5 +24,11 @@ def load_backend() -> InferenceBackend:
             port=int(os.getenv('TENSORRT_PORT', '8000')),
             model=os.getenv('TENSORRT_MODEL', 'vila')
         )
+    elif backend_type == 'llamacpp':
+        from backends.llamacpp_backend import LlamaCppBackend
+        return LlamaCppBackend(
+            host=os.getenv('LLAMACPP_HOST', 'localhost'),
+            port=int(os.getenv('LLAMACPP_PORT', '8080'))
+        )
     else:
-        raise ValueError(f"Unknown backend: {backend_type}. Choose: ollama, vila, tensorrt")
+        raise ValueError(f"Unknown backend: {backend_type}. Choose: ollama, vila, tensorrt, llamacpp")
