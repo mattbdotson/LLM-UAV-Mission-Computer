@@ -5,7 +5,7 @@ Mission history:
 {decisions_summary}
 
 Available commands:
-- goto_pixel: fly to a location on the map (specify x, y pixel coordinates 0-384)
+- goto_pixel: fly to a location on the map (specify x, y pixel coordinates 0-512)
 - rtl: abort mission, return to launch
 
 Current aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s

@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 import os
 
 class MapCompositor:
-    def __init__(self, tile_path, bounds, vlm_size=(384, 384)):
+    def __init__(self, tile_path, bounds, vlm_size=(512, 512)):
         self.base = Image.open(tile_path).convert("RGB")
         self.bounds = bounds
         self.w, self.h = self.base.size

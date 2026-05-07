@@ -8,8 +8,8 @@ On the map:
 - Compass rose = top left corner
 
 IMPORTANT - Pixel coordinate system:
-- x=0 is the LEFT (west) edge, x=384 is the RIGHT (east) edge
-- y=0 is the TOP (north) edge, y=384 is the BOTTOM (south) edge
+- x=0 is the LEFT (west) edge, x=512 is the RIGHT (east) edge
+- y=0 is the TOP (north) edge, y=512 is the BOTTOM (south) edge
 - To fly NORTH, choose a LOWER y value
 - To fly SOUTH, choose a HIGHER y value
 - To fly EAST, choose a HIGHER x value

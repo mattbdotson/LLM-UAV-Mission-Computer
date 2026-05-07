@@ -6,7 +6,7 @@ Mission history:
 {decisions_summary}
 
 Available commands:
-- goto_pixel: fly to a location on the map (specify x, y pixel coordinates 0-384)
+- goto_pixel: fly to a location on the map (specify x, y pixel coordinates 0-512)
 - loiter: circle a point on the map (specify x, y, radius, alt)
 - rtl: mission complete, return to launch
 
