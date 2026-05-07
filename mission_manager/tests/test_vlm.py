@@ -11,17 +11,27 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', 'config', '.env'))
 
-OLLAMA_HOST = os.getenv('OLLAMA_HOST', 'localhost')
-OLLAMA_PORT = os.getenv('OLLAMA_PORT', '11434')
-OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'llama3.2:1b')
-OLLAMA_URL = f"http://{OLLAMA_HOST}:{OLLAMA_PORT}"
+INFERENCE_BACKEND = os.getenv('INFERENCE_BACKEND', 'llamacpp').lower()
+LLAMACPP_HOST = os.getenv('LLAMACPP_HOST', 'localhost')
+LLAMACPP_PORT = os.getenv('LLAMACPP_PORT', '8080')
+
+if INFERENCE_BACKEND == 'llamacpp':
+    HOST = LLAMACPP_HOST
+    PORT = LLAMACPP_PORT
+else:
+    HOST = LLAMACPP_HOST
+    PORT = LLAMACPP_PORT
+
+BASE_URL = f"http://{HOST}:{PORT}"
+MODEL = "gemma4-e2b"
 
 MISSION_MANAGER_DIR = os.path.join(os.path.dirname(__file__), '..')
 
+
 def test_health():
-    print("Testing Ollama health endpoint...")
+    print(f"Testing llama-server health endpoint at {BASE_URL}/health ...")
     try:
-        r = requests.get(f"{OLLAMA_URL}/api/version", timeout=5)
+        r = requests.get(f"{BASE_URL}/health", timeout=5)
         print(f"Status: {r.status_code}")
         print(f"Response: {r.json()}")
         return r.status_code == 200
@@ -29,23 +39,25 @@ def test_health():
         print(f"Health check failed: {e}")
         return False
 
+
 def test_text_only():
-    print(f"\nTesting {OLLAMA_MODEL} text-only inference...")
+    print(f"\nTesting {MODEL} text-only inference...")
     try:
-        r = requests.post(f"{OLLAMA_URL}/api/chat", json={
-            "model": OLLAMA_MODEL,
+        r = requests.post(f"{BASE_URL}/v1/chat/completions", json={
+            "model": MODEL,
             "messages": [{"role": "user", "content": "What is a waypoint in aviation? Answer in one sentence."}],
-            "stream": False
+            "max_tokens": 100
         }, timeout=60)
         print(f"Status: {r.status_code}")
-        print(f"Response: {r.json()['message']['content']}")
+        print(f"Response: {r.json()['choices'][0]['message']['content']}")
         return True
     except Exception as e:
         print(f"Text test failed: {e}")
         return False
 
+
 def test_image_inference():
-    print(f"\nTesting {OLLAMA_MODEL} image + text inference...")
+    print(f"\nTesting {MODEL} image + text inference...")
 
     tile_path = os.path.join(MISSION_MANAGER_DIR, 'assets', MAP_TILE_PATH)
     compositor = MapCompositor(tile_path, MAP_BOUNDS, vlm_size=VLM_IMAGE_SIZE)
@@ -59,25 +71,29 @@ def test_image_inference():
     image_b64 = compositor.compose(state, MISSION_TARGET)
 
     try:
-        r = requests.post(f"{OLLAMA_URL}/api/chat", json={
-            "model": OLLAMA_MODEL,
-            "messages": [{"role": "user", "content": "This is a top-down map. There is a blue arrow showing an aircraft position and heading. There is a red circle showing a mission target. Where is the aircraft relative to the red circle? What direction should the aircraft fly to reach the target?", "images": [image_b64]}],
-            "stream": False
+        r = requests.post(f"{BASE_URL}/v1/chat/completions", json={
+            "model": MODEL,
+            "messages": [{"role": "user", "content": [
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_b64}"}},
+                {"type": "text", "text": "This is a top-down map. The blue arrow is an aircraft. The red crosshair is a mission target. Where is the aircraft relative to the target? What direction should it fly?"}
+            ]}],
+            "max_tokens": 200
         }, timeout=120)
 
         print(f"Status: {r.status_code}")
-        print(f"VLM response: {r.json()['message']['content']}")
+        print(f"VLM response: {r.json()['choices'][0]['message']['content']}")
 
         return True
     except Exception as e:
         print(f"Image test failed: {e}")
         return False
 
+
 if __name__ == "__main__":
-    print(f"=== VLM Integration Test ({OLLAMA_MODEL}) ===\n")
+    print(f"=== VLM Integration Test (backend: {INFERENCE_BACKEND}, model: {MODEL}) ===\n")
 
     if not test_health():
-        print("\nOllama is not reachable. Is it running?")
+        print(f"\nllama-server is not reachable at {BASE_URL}. Is it running?")
         exit(1)
 
     test_text_only()
