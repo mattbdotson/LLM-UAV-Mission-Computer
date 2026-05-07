@@ -1,7 +1,7 @@
 #!/bin/bash
-llama-server \
+~/llama.cpp/build/bin/llama-server \
   -m ~/models/gemma-4-E2B-it-Q4_K_M.gguf \
-  --mmproj ~/models/mmproj-gemma4-e2b-f16.gguf \
+  --mmproj ~/models/mmproj-gemma4-e2b-BF16.gguf \
   -ngl 99 \
   --flash-attn on \
   --host 0.0.0.0 \
