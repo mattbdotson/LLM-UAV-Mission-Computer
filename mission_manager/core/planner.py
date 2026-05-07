@@ -73,3 +73,53 @@ class Planner:
         }
         print(f"Planner decision: {json.dumps(response, indent=2)}")
         return response
+
+    def decide_with_context(self, state, context, event, event_data=None):
+        if self.stub:
+            return self._stub_response(state)
+
+        image_b64 = self.compositor.compose(state, MISSION_TARGET)
+        if image_b64 is None:
+            return {"command": "rtl", "reasoning": "Map error", "params": {}}
+
+        user_prompt = self._load_event_prompt(event, state, context, event_data)
+
+        try:
+            raw = self.backend.generate(
+                system_prompt=self.system_prompt,
+                user_prompt=user_prompt,
+                image_b64=image_b64
+            )
+            print(f"[{self.backend.get_name()}] raw response: {raw}")
+            command = json.loads(raw)
+            print(f"Planner decision: {json.dumps(command, indent=2)}")
+            return command
+        except json.JSONDecodeError as e:
+            print(f"JSON parse error: {e} — falling back to RTL")
+            return {"command": "rtl", "reasoning": "Parse error", "params": {}}
+        except Exception as e:
+            print(f"Backend error: {e} — falling back to RTL")
+            return {"command": "rtl", "reasoning": "Backend error", "params": {}}
+
+    def _load_event_prompt(self, event, state, context, event_data):
+        template_path = os.path.join(
+            os.path.dirname(__file__), '..', 'prompts', f'{event}.txt'
+        )
+        try:
+            with open(template_path, 'r') as f:
+                template = f.read()
+        except FileNotFoundError:
+            template = "Current state: {state}\nEvent: {event}\nWhat should the aircraft do next?"
+
+        return template.format(
+            objective=context.objective,
+            state=context.current_state,
+            event=event,
+            waypoints_summary=context.waypoints_summary(),
+            decisions_summary=context.decisions_summary(),
+            alt=f"{state.get('alt', 0):.0f}",
+            heading=f"{state.get('heading', 0):.0f}",
+            airspeed=f"{state.get('airspeed', 0):.0f}",
+            seq=event_data.get("seq", 0) if event_data else 0,
+            total_waypoints=context.total_waypoints
+        )

@@ -6,11 +6,15 @@ from dotenv import load_dotenv
 from core.telemetry import TelemetryListener
 from core.planner import Planner
 from core.executor import Executor
+from core.mission_context import MissionContext
+from core.state_machine import StateMachine, MissionState
+from core.event_monitor import EventMonitor
 
 load_dotenv(os.path.join(os.path.dirname(__file__), 'config', '.env'))
 
 CONNECTION_STRING = "udp:localhost:14552"
-PLANNING_INTERVAL = 10
+MISSION_OBJECTIVE = "Fly north to the highway junction visible on the map, then RTL"
+TOTAL_WAYPOINTS = 5
 
 def start_sitl():
     print("Starting SITL...")
@@ -61,24 +65,22 @@ def main():
         vila_port = os.getenv('VILA_PORT', '5000')
         wait_for_vila(vila_host, vila_port)
 
+    mission_context = MissionContext(
+        objective=MISSION_OBJECTIVE,
+        total_waypoints=TOTAL_WAYPOINTS,
+    )
+
+    state_machine = StateMachine(mission_context, planner, executor, telemetry)
+    event_monitor = EventMonitor(telemetry.connection, state_machine)
+
     executor.arm_and_takeoff(altitude=100)
+    state_machine.transition_to(MissionState.TAKEOFF)
 
     print("Mission manager running. Press Ctrl+C to stop.")
 
-    last_plan_time = 0
-
     while True:
         telemetry.update()
-
-        current_time = time.time()
-        if current_time - last_plan_time >= PLANNING_INTERVAL:
-            state = telemetry.get_state()
-            if state and "lat" in state and abs(state["lat"]) > 1 and state.get("alt", 0) > 50:
-                print(f"\nCurrent state: {state}")
-                command = planner.decide(state)
-                executor.execute(command)
-                last_plan_time = current_time
-
+        event_monitor.check()
         time.sleep(0.1)
 
 
