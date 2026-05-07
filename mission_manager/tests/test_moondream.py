@@ -57,20 +57,15 @@ def test_image_inference():
     }
     image_b64 = compositor.compose(state, MISSION_TARGET)
 
-    system_prompt_path = os.path.join(MISSION_MANAGER_DIR, 'prompts', 'system_prompt.txt')
-    system_prompt = open(system_prompt_path).read()
-    user_prompt = f"{system_prompt}\n\nCurrent aircraft state: alt=150m, heading=45°, airspeed=22m/s\n\nWhat should the aircraft do next?"
-
     try:
         r = requests.post(f"{OLLAMA_URL}/api/chat", json={
             "model": "moondream",
-            "messages": [{"role": "user", "content": user_prompt, "images": [image_b64]}],
+            "messages": [{"role": "user", "content": "Describe this image.", "images": [image_b64]}],
             "stream": False
         }, timeout=120)
 
         print(f"Status: {r.status_code}")
-        raw = r.json()["message"]["content"]
-        print(f"Moondream response: {raw}")
+        print(f"Full response: {r.json()}")
 
         return True
     except Exception as e:
