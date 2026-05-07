@@ -16,7 +16,15 @@ CONNECTION_STRING = "udp:localhost:14552"
 MISSION_OBJECTIVE = "Fly north to the highway junction visible on the map, then RTL"
 TOTAL_WAYPOINTS = 5
 
+def cleanup_stale_sitl():
+    print("Cleaning up any stale SITL processes...")
+    for pattern in ("arduplane", "sim_vehicle", "mavproxy", "xterm.*ArduPlane"):
+        subprocess.run(["pkill", "-9", "-f", pattern], check=False)
+    time.sleep(2)
+
+
 def start_sitl():
+    cleanup_stale_sitl()
     print("Starting SITL...")
     sitl_process = subprocess.Popen(
         [
