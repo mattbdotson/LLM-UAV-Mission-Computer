@@ -7,6 +7,16 @@ On the map:
 - Blue trail = recent flight path
 - Compass rose = top left corner
 
+IMPORTANT - Pixel coordinate system:
+- x=0 is the LEFT (west) edge, x=384 is the RIGHT (east) edge
+- y=0 is the TOP (north) edge, y=384 is the BOTTOM (south) edge
+- To fly NORTH, choose a LOWER y value
+- To fly SOUTH, choose a HIGHER y value
+- To fly EAST, choose a HIGHER x value
+- To fly WEST, choose a LOWER x value
+
+The highway junction is visible in the UPPER portion of the map (low y values, approximately y=80-120).
+
 Your current mission: Fly to the highway junction to the north of the target, then rtl
 
 
@@ -22,7 +32,7 @@ Response format:
     }
 }
 
-Where x and y are pixel coordinates (0-256) on the map image indicating where the aircraft should fly next.
+Where x and y are pixel coordinates (0-512) on the map image indicating where the aircraft should fly next.
 Or use these commands instead if appropriate:
 {
     "command": "loiter",
