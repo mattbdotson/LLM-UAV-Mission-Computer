@@ -1,5 +1,7 @@
 import json
 import os
+import time
+import base64
 from dotenv import load_dotenv
 from backends import load_backend
 from mapping.map_compositor import MapCompositor
@@ -37,6 +39,8 @@ class Planner:
         if image_b64 is None:
             print("Map composition failed — falling back to RTL")
             return {"command": "rtl", "reasoning": "Map error", "params": {}}
+
+        self._save_debug_map(image_b64, "decide")
 
         prompt = self.user_prompt_template.format(
             alt=f"{state.get('alt', 0):.0f}",
@@ -78,9 +82,13 @@ class Planner:
         if self.stub:
             return self._stub_response(state)
 
+        print(f"[Planner] Composing map image for event: {event}")
         image_b64 = self.compositor.compose(state, MISSION_TARGET)
         if image_b64 is None:
             return {"command": "rtl", "reasoning": "Map error", "params": {}}
+        print(f"[Planner] Map image composed, size: {len(image_b64)} bytes")
+
+        self._save_debug_map(image_b64, event)
 
         user_prompt = self._load_event_prompt(event, state, context, event_data)
 
@@ -100,6 +108,13 @@ class Planner:
         except Exception as e:
             print(f"Backend error: {e} — falling back to RTL")
             return {"command": "rtl", "reasoning": "Backend error", "params": {}}
+
+    def _save_debug_map(self, image_b64, event):
+        os.makedirs("debug/maps", exist_ok=True)
+        filename = f"debug/maps/{event}_{int(time.time())}.png"
+        with open(filename, 'wb') as f:
+            f.write(base64.b64decode(image_b64))
+        print(f"[Planner] Debug map saved: {filename}")
 
     def _load_event_prompt(self, event, state, context, event_data):
         template_path = os.path.join(

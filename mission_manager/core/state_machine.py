@@ -56,6 +56,7 @@ class StateMachine:
 
     def _llm_decision(self, trigger, seq, telemetry_state):
         print(f"[StateMachine] Consulting LLM for {trigger} at waypoint {seq}")
+        print(f"[StateMachine] Passing telemetry state to planner: {telemetry_state}")
         print(f"[LLM] *** Invoking Gemma 4 E2B for event: {trigger} at waypoint {seq} ***")
 
         command = self.planner.decide_with_context(
