@@ -7,24 +7,26 @@ class OllamaBackend(InferenceBackend):
         self.host = host
         self.port = port
         self.model = model
-        self.url = f"http://{host}:{port}/api/generate"
+        self.url = f"http://{host}:{port}/api/chat"
         print(f"OllamaBackend initialized: {self.url} model={model}")
 
     def generate(self,
                  system_prompt: str,
                  user_prompt: str,
                  image_b64: Optional[str] = None) -> str:
+        message = {"role": "user", "content": user_prompt}
+        if image_b64:
+            message["images"] = [image_b64]
+
         payload = {
             "model": self.model,
-            "prompt": user_prompt,
+            "messages": [message],
             "system": system_prompt,
             "stream": False
         }
-        if image_b64:
-            payload["images"] = [image_b64]
 
         response = requests.post(self.url, json=payload, timeout=60)
-        return response.json()["response"]
+        return response.json()["message"]["content"]
 
     def health_check(self) -> bool:
         try:
