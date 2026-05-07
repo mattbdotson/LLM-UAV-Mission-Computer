@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from backends import load_backend
 from mapping.map_compositor import MapCompositor
-from config.map_config import MAP_TILE_PATH, MAP_BOUNDS, MISSION_TARGET
+from config.map_config import MAP_TILE_PATH, MAP_BOUNDS, MISSION_TARGET, VLM_IMAGE_SIZE
 
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', 'config', '.env'))
 
@@ -18,7 +18,8 @@ class Planner:
         self.backend = load_backend()
         self.compositor = MapCompositor(
             os.path.join(os.path.dirname(__file__), '..', 'assets', MAP_TILE_PATH),
-            MAP_BOUNDS
+            MAP_BOUNDS,
+            vlm_size=VLM_IMAGE_SIZE
         )
         self.system_prompt = load_prompt('system_prompt.txt')
         self.user_prompt_template = load_prompt('user_prompt.txt')

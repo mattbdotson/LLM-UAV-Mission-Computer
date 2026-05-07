@@ -10,11 +10,12 @@ class Executor:
     def _get_compositor(self):
         if self._compositor is None:
             from mapping.map_compositor import MapCompositor
-            from config.map_config import MAP_TILE_PATH, MAP_BOUNDS
+            from config.map_config import MAP_TILE_PATH, MAP_BOUNDS, VLM_IMAGE_SIZE
             import os
             self._compositor = MapCompositor(
                 os.path.join(os.path.dirname(__file__), '..', 'assets', MAP_TILE_PATH),
-                MAP_BOUNDS
+                MAP_BOUNDS,
+                vlm_size=VLM_IMAGE_SIZE
             )
         return self._compositor
 

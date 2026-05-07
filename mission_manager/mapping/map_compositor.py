@@ -5,12 +5,13 @@ from PIL import Image, ImageDraw, ImageFont
 import os
 
 class MapCompositor:
-    def __init__(self, tile_path, bounds):
+    def __init__(self, tile_path, bounds, vlm_size=(384, 384)):
         self.base = Image.open(tile_path).convert("RGB")
         self.bounds = bounds
         self.w, self.h = self.base.size
+        self.vlm_size = vlm_size
         self.trail = []
-        print(f"Map loaded: {self.w}x{self.h}px, bounds: {bounds}")
+        print(f"Map loaded: {self.w}x{self.h}px, bounds: {bounds}, vlm_size: {vlm_size}")
 
     def gps_to_pixel(self, lat, lon):
         min_lat, max_lat, min_lon, max_lon = self.bounds
@@ -20,9 +21,8 @@ class MapCompositor:
 
     def pixel_to_gps(self, x, y):
         min_lat, max_lat, min_lon, max_lon = self.bounds
-        # x, y are in 384x384 space, scale back to full resolution first
-        full_x = int(x * self.w / 384)
-        full_y = int(y * self.h / 384)
+        full_x = int(x * self.w / self.vlm_size[0])
+        full_y = int(y * self.h / self.vlm_size[1])
         lon = min_lon + (full_x / self.w) * (max_lon - min_lon)
         lat = max_lat - (full_y / self.h) * (max_lat - min_lat)
         return lat, lon
@@ -87,8 +87,7 @@ class MapCompositor:
             draw.text((30, 195), "W", fill=(0, 0, 0), font=font)
             draw.text((400, 195), "E", fill=(0, 0, 0), font=font)
 
-            vlm_size = (384, 384)
-            img_resized = img.resize(vlm_size, Image.LANCZOS)
+            img_resized = img.resize(self.vlm_size, Image.LANCZOS)
 
             buf = io.BytesIO()
             img_resized.save(buf, format="PNG")

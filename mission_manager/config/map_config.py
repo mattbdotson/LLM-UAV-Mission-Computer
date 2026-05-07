@@ -12,3 +12,6 @@ MAP_BOUNDS = (
 
 # Mission target for orbit mission (SITL default area center)
 MISSION_TARGET = (-35.363261, 149.165230)
+
+# VLM input resolution — set per model (moondream: 256, VILA: 384)
+VLM_IMAGE_SIZE = (256, 256)
