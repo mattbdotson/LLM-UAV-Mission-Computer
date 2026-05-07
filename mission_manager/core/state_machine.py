@@ -34,7 +34,9 @@ class StateMachine:
     def handle_altitude_reached(self, data):
         if self.state == MissionState.TAKEOFF:
             self.transition_to(MissionState.TRANSIT)
-            print("[StateMachine] Cruise altitude reached, beginning transit")
+            print("[StateMachine] Cruise altitude reached, consulting LLM for first waypoint...")
+            current_state = self.telemetry.get_state()
+            self._llm_decision("transit_started", 0, current_state)
 
     def handle_mode_changed(self, data):
         if self.state == MissionState.RETURNING:
@@ -54,6 +56,7 @@ class StateMachine:
 
     def _llm_decision(self, trigger, seq, telemetry_state):
         print(f"[StateMachine] Consulting LLM for {trigger} at waypoint {seq}")
+        print(f"[LLM] *** Invoking Gemma 4 E2B for event: {trigger} at waypoint {seq} ***")
 
         command = self.planner.decide_with_context(
             state=telemetry_state,
@@ -61,6 +64,8 @@ class StateMachine:
             event=trigger,
             event_data={"seq": seq}
         )
+
+        print(f"[LLM] *** Decision: {command.get('command')} — {command.get('reasoning', '')} ***")
 
         self.context.add_decision(
             trigger=trigger,
