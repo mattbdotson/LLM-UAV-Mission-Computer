@@ -2,6 +2,7 @@ import json
 import os
 import time
 import base64
+import datetime
 from dotenv import load_dotenv
 from backends import load_backend
 from mapping.map_compositor import MapCompositor
@@ -25,6 +26,10 @@ class Planner:
         )
         self.system_prompt = load_prompt('system_prompt.txt')
         self.user_prompt_template = load_prompt('user_prompt.txt')
+        run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.debug_dir = os.path.join(os.path.dirname(__file__), '..', 'debug', 'maps', run_id)
+        os.makedirs(self.debug_dir, exist_ok=True)
+        print(f"[Planner] Debug images will be saved to: {self.debug_dir}")
         print(f"Planner initialized ({'stub' if stub else self.backend.get_name()} mode)")
 
     def decide(self, state):
@@ -40,7 +45,7 @@ class Planner:
             print("Map composition failed — falling back to RTL")
             return {"command": "rtl", "reasoning": "Map error", "params": {}}
 
-        self._save_debug_map(image_b64, "decide")
+        self._save_debug_map(image_b64, "decide", seq=0)
 
         prompt = self.user_prompt_template.format(
             alt=f"{state.get('alt', 0):.0f}",
@@ -88,7 +93,7 @@ class Planner:
             return {"command": "rtl", "reasoning": "Map error", "params": {}}
         print(f"[Planner] Map image composed, size: {len(image_b64)} bytes")
 
-        self._save_debug_map(image_b64, event)
+        self._save_debug_map(image_b64, event, seq=event_data.get("seq", 0) if event_data else 0)
 
         user_prompt = self._load_event_prompt(event, state, context, event_data)
 
@@ -112,9 +117,8 @@ class Planner:
             print(f"Backend error: {e} — falling back to RTL")
             return {"command": "rtl", "reasoning": "Backend error", "params": {}}
 
-    def _save_debug_map(self, image_b64, event):
-        os.makedirs("debug/maps", exist_ok=True)
-        filename = f"debug/maps/{event}_{int(time.time())}.png"
+    def _save_debug_map(self, image_b64, event, seq=0):
+        filename = os.path.join(self.debug_dir, f"{event}_seq{seq}_{int(time.time())}.png")
         with open(filename, 'wb') as f:
             f.write(base64.b64decode(image_b64))
         print(f"[Planner] Debug map saved: {filename}")
