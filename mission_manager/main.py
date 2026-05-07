@@ -71,7 +71,7 @@ def main():
     )
 
     state_machine = StateMachine(mission_context, planner, executor, telemetry)
-    event_monitor = EventMonitor(telemetry.connection, state_machine)
+    event_monitor = EventMonitor(telemetry, state_machine)
 
     executor.arm_and_takeoff(altitude=100)
     state_machine.transition_to(MissionState.TAKEOFF)
@@ -80,7 +80,7 @@ def main():
 
     while True:
         telemetry.update()
-        event_monitor.check()
+        event_monitor.check(telemetry.get_raw_messages())
         time.sleep(0.1)
 
 
