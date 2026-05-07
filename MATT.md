@@ -318,6 +318,20 @@ Every LLM decision gets stored in this context. The next call includes the full 
 
 This is the architectural insight that makes the LLM **genuinely useful rather than reactive**: the state machine converts the time-driven telemetry stream into meaningful events, AND provides the memory layer that small models lack natively.
 
+## Prompting Strategy Decision
+
+*Date: 2026-05-07*
+
+We evaluated three prompting strategies for LLM decision points in the state machine:
+
+**Option A — Focused prompt per event type.** Rejected. Does not scale once anomalies are introduced — the event space becomes too large to maintain individual prompts for each case.
+
+**Option B — Universal prompt with event context (selected).** One prompt template populated with current state, triggering event, mission history, and map image. The LLM receives full context and responds with a command from the available action set. Selected for initial implementation because it handles unexpected events gracefully and is flexible enough to iterate on without restructuring the prompting system.
+
+**Option C — Action menu constrained per state.** Most architecturally interesting — constrains LLM output to only legal actions for the current state, reducing hallucination risk and parse complexity. Deferred. If Option B produces unreliable JSON or poor decision quality, migrate to C. The state machine architecture already supports this — legal actions per state are implicit in the transition table and can be made explicit in prompts without changing the executor.
+
+The hybrid approach worth exploring under Option C: validate that the LLM's named command is legal for the current state, and reject/fallback if not. This gives output flexibility with machine-enforced constraints.
+
 ---
 
 # Chapter 5: Inference Backend Comparison
