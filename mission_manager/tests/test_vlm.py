@@ -49,6 +49,7 @@ def test_text_only():
             "messages": [{"role": "user", "content": "What is a waypoint in aviation? Answer in one sentence."}],
             "max_tokens": 100
         }, timeout=180)
+        print(f"Full raw response: {r.json()}")
         print(f"Status: {r.status_code}")
         print(f"Response: {r.json()['choices'][0]['message']['content']}")
         return True
@@ -82,6 +83,7 @@ def test_image_inference():
             "max_tokens": 200
         }, timeout=180)
 
+        print(f"Full raw response: {r.json()}")
         print(f"Status: {r.status_code}")
         print(f"VLM response: {r.json()['choices'][0]['message']['content']}")
 
