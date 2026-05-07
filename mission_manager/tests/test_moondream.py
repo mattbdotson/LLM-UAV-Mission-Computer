@@ -60,12 +60,12 @@ def test_image_inference():
     try:
         r = requests.post(f"{OLLAMA_URL}/api/chat", json={
             "model": "moondream",
-            "messages": [{"role": "user", "content": "Describe this image.", "images": [image_b64]}],
+            "messages": [{"role": "user", "content": "This is a top-down map. There is a blue arrow showing an aircraft position and heading. There is a red circle showing a mission target. Where is the aircraft relative to the red circle? What direction should the aircraft fly to reach the target?", "images": [image_b64]}],
             "stream": False
         }, timeout=120)
 
         print(f"Status: {r.status_code}")
-        print(f"Full response: {r.json()}")
+        print(f"Moondream response: {r.json()['message']['content']}")
 
         return True
     except Exception as e:
