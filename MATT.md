@@ -109,7 +109,7 @@ The Orin Nano was deliberately chosen over the larger Orin NX. The constraint is
 | Comms | pymavlink | Python MAVLink in the Mission Manager |
 | Map data | OpenStreetMap | Base tile download via tile server |
 | Image | Pillow | MapCompositor draws aircraft/trail/target overlays |
-| HTTP | requests / Flask | Backend client + VILA server wrapper |
+| HTTP | requests / Flask | Backend client + VILA server wrapper (written but never deployed — VILA abandoned before use) |
 | Inference (active) | llama.cpp | Native CUDA build, OpenAI-compatible server |
 | Inference (text trial) | Ollama | First attempted backend, blocked by CUDA bug |
 | Inference (abandoned) | nano_llm + VILA 1.5-3B | Tried, dropped before deployment |
@@ -177,10 +177,15 @@ llama.cpp built native  ─────►  the answer. Compiled with DGGML_CUDA
 + Gemma 4 E2B + mmproj         talks to the GPU directly. OpenAI-
                                 compatible API on :8080. In progress.
 
-VILA 1.5-3B via         ─────►  evaluated and abandoned. nano_llm
-nano_llm container             container is huge, weights are huge,
-                                requires Docker, and llama.cpp is
-                                strictly better for our use case.
+VILA 1.5-3B via         ─────►  abandoned for disk space. nano_llm
+nano_llm container             container is 12.7GB and the VILA
+                                weights add another ~7GB. Together
+                                they exceeded the free space on the
+                                64GB SD card with the OS installed.
+                                Not a technical failure — a storage
+                                budget failure. By the time the NVMe
+                                arrives, llama.cpp is the better path
+                                anyway.
 ```
 
 The lesson: **Ollama's UX advantage doesn't matter if it can't use the hardware.** The Orin Nano's unified memory architecture is where Ollama's allocator falls down. llama.cpp built natively with CUDA support is the right tool — less convenient, but it actually runs.
@@ -309,13 +314,39 @@ This buys us:
 - **Sharper context** — each call is at a meaningful moment, with a meaningful question
 - **Better debug logs** — every VLM call is tied to a specific event
 
+### State Machine as LLM Memory
+
+The state machine solves a second problem beyond event-driven triggering: **it gives the LLM persistent memory across the mission.**
+
+Currently every LLM call is stateless — the model gets raw telemetry and has no idea what happened before. The state machine can accumulate a context object that grows throughout the mission:
+
+```python
+mission_context = {
+    "objective": "Search grid A3 for targets of interest",
+    "waypoints_visited": [
+        {"seq": 1, "finding": "nothing notable"},
+        {"seq": 2, "finding": "investigated structure — false positive"}
+    ],
+    "decisions_made": [
+        {"trigger": "waypoint_reached", "seq": 2, "decision": "investigate",
+         "reasoning": "unusual structure visible on map"}
+    ],
+    "time_on_task_seconds": 420
+}
+```
+
+Every LLM decision gets stored in this context. The next call includes the full history. The model can now reason about patterns across the mission — *"I've investigated two things and both were false positives, I'll set a higher bar"* — rather than treating each waypoint as if it's the first.
+
+This is the architectural insight that makes the LLM **genuinely useful rather than reactive**: the state machine converts the time-driven telemetry stream into meaningful events, AND provides the memory layer that small models lack natively.
+
 ---
 
 ## Open Questions / Research Directions
 
-- **Can E2B reliably output valid JSON with pixel coordinates?** Moondream couldn't. Gemma 4 E2B is bigger and better instruction-tuned, but we haven't proven it yet.
+- **Can E2B reliably output valid JSON with pixel coordinates?** Gemma 4 has native JSON/function calling support baked in — higher confidence than moondream — but unproven on our specific task.
 - **Does visual context actually beat text-only?** We expect yes (that's the whole thesis), but we should measure it. Same mission, same model, with and without the map image — what's the difference?
 - **What's the right event granularity for state-machine triggers?** Every waypoint reached? Every mode change? Every N seconds with no event? We don't know yet.
+- **Does state machine memory improve decision quality?** If we feed prior waypoint findings and decisions into the prompt, does the model make better choices? Or does the added context confuse it?
 - **Can the model learn mission patterns with accumulated context?** If we feed prior decisions and outcomes into the prompt, does it get better at this mission over time? Or just confused?
 - **X-Plane integration for photorealistic visual input?** SITL gives us a top-down OpenStreetMap tile. X-Plane could give us a real downward-facing camera feed. Different problem, more interesting answers.
 
