@@ -47,11 +47,13 @@ def test_text_only():
         r = requests.post(f"{BASE_URL}/v1/chat/completions", json={
             "model": MODEL,
             "messages": [{"role": "user", "content": "What is a waypoint in aviation? Answer in one sentence."}],
-            "max_tokens": 100
+            "max_tokens": 2048
         }, timeout=180)
         print(f"Full raw response: {r.json()}")
         print(f"Status: {r.status_code}")
-        print(f"Response: {r.json()['choices'][0]['message']['content']}")
+        message = r.json()['choices'][0]['message']
+        print(f"Reasoning: {message.get('reasoning_content')}")
+        print(f"Response: {message['content']}")
         return True
     except Exception as e:
         print(f"Text test failed: {e}")
@@ -80,12 +82,14 @@ def test_image_inference():
                 {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_b64}"}},
                 {"type": "text", "text": "This is a top-down map. The blue arrow is an aircraft. The red crosshair is a mission target. Where is the aircraft relative to the target? What direction should it fly?"}
             ]}],
-            "max_tokens": 200
+            "max_tokens": 2048
         }, timeout=180)
 
         print(f"Full raw response: {r.json()}")
         print(f"Status: {r.status_code}")
-        print(f"VLM response: {r.json()['choices'][0]['message']['content']}")
+        message = r.json()['choices'][0]['message']
+        print(f"Reasoning: {message.get('reasoning_content')}")
+        print(f"VLM response: {message['content']}")
 
         return True
     except Exception as e:

@@ -27,7 +27,7 @@ class LlamaCppBackend(InferenceBackend):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content}
             ],
-            "max_tokens": 512,
+            "max_tokens": 2048,
             "temperature": 0.1
         }
 
@@ -36,7 +36,11 @@ class LlamaCppBackend(InferenceBackend):
             json=payload,
             timeout=120
         )
-        return response.json()["choices"][0]["message"]["content"]
+        message = response.json()["choices"][0]["message"]
+        reasoning = message.get("reasoning_content")
+        if reasoning:
+            print(f"[THINKING] {reasoning}")
+        return message["content"]
 
     def health_check(self) -> bool:
         try:
