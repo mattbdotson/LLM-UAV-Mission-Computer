@@ -22,7 +22,7 @@ Response format:
     }
 }
 
-Where x and y are pixel coordinates (0-384) on the map image indicating where the aircraft should fly next.
+Where x and y are pixel coordinates (0-256) on the map image indicating where the aircraft should fly next.
 Or use these commands instead if appropriate:
 {
     "command": "loiter",
