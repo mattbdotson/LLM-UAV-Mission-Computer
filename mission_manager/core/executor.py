@@ -1,7 +1,5 @@
 from pymavlink import mavutil
 import time
-from mapping.map_compositor import MapCompositor
-from config.map_config import MAP_TILE_PATH, MAP_BOUNDS
 
 class Executor:
     def __init__(self, connection):
@@ -10,15 +8,15 @@ class Executor:
         print("Executor initialized")
 
     def _get_compositor(self):
-     if self._compositor is None:
-        from mapping.map_compositor import MapCompositor
-        from config.map_config import MAP_TILE_PATH, MAP_BOUNDS
-        import os
-        self._compositor = MapCompositor(
-            os.path.join(os.path.dirname(__file__), '..', 'assets', MAP_TILE_PATH),
-            MAP_BOUNDS
-        )
-     return self._compositor
+        if self._compositor is None:
+            from mapping.map_compositor import MapCompositor
+            from config.map_config import MAP_TILE_PATH, MAP_BOUNDS
+            import os
+            self._compositor = MapCompositor(
+                os.path.join(os.path.dirname(__file__), '..', 'assets', MAP_TILE_PATH),
+                MAP_BOUNDS
+            )
+        return self._compositor
 
     def arm_and_takeoff(self, altitude=100):
         print("Setting mode to GUIDED...")

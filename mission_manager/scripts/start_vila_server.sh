@@ -4,4 +4,4 @@ jetson-containers run \
   --restart unless-stopped \
   -v ~/LLM-UAV-Mission-Computer/mission_manager:/mission_manager \
   dustynv/nano_llm:r36.4.0 \
-  bash -c "pip install flask && python3 /mission_manager/vila_server.py"
+  bash -c "pip install flask && python3 /mission_manager/servers/vila_server.py"

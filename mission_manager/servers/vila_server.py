@@ -10,7 +10,7 @@ print("Loading VILA model...")
 model = NanoLLM.from_pretrained(
     "Efficient-Large-Model/VILA1.5-3b",
     api='mlc',
-    quantization='q4f16_ft'
+    quantization='q2'
 )
 chat_history = ChatHistory(model)
 print("VILA ready on port 5000")

@@ -2,9 +2,12 @@ import time
 import os
 import subprocess
 import requests as req
-from telemetry import TelemetryListener
-from planner import Planner
-from executor import Executor
+from dotenv import load_dotenv
+from core.telemetry import TelemetryListener
+from core.planner import Planner
+from core.executor import Executor
+
+load_dotenv(os.path.join(os.path.dirname(__file__), 'config', '.env'))
 
 CONNECTION_STRING = "udp:localhost:14552"
 PLANNING_INTERVAL = 10
@@ -28,7 +31,6 @@ def start_sitl():
     return sitl_process
 
 def wait_for_vila(host, port, timeout=120):
-    import time
     url = f"http://{host}:{port}/health"
     print(f"Waiting for VILA server at {url}...")
     start = time.time()
@@ -53,10 +55,11 @@ def main():
     planner = Planner(stub=False)
     executor = Executor(telemetry.connection)
 
-    vila_host = os.getenv('VILA_HOST', 'localhost')
-    vila_port = os.getenv('VILA_PORT', '5000')
-    wait_for_vila(vila_host, vila_port)
-
+    backend = os.getenv('INFERENCE_BACKEND', 'vila').lower()
+    if backend == 'vila':
+        vila_host = os.getenv('VILA_HOST', 'localhost')
+        vila_port = os.getenv('VILA_PORT', '5000')
+        wait_for_vila(vila_host, vila_port)
 
     executor.arm_and_takeoff(altitude=100)
 
@@ -79,7 +82,5 @@ def main():
         time.sleep(0.1)
 
 
-
 if __name__ == "__main__":
     main()
-
