@@ -42,12 +42,13 @@ def test_health():
 
 def test_text_only():
     print(f"\nTesting {MODEL} text-only inference...")
+    print("Sending request, this may take up to 3 minutes on first inference...")
     try:
         r = requests.post(f"{BASE_URL}/v1/chat/completions", json={
             "model": MODEL,
             "messages": [{"role": "user", "content": "What is a waypoint in aviation? Answer in one sentence."}],
             "max_tokens": 100
-        }, timeout=60)
+        }, timeout=180)
         print(f"Status: {r.status_code}")
         print(f"Response: {r.json()['choices'][0]['message']['content']}")
         return True
@@ -70,6 +71,7 @@ def test_image_inference():
     }
     image_b64 = compositor.compose(state, MISSION_TARGET)
 
+    print("Sending request, this may take up to 3 minutes on first inference...")
     try:
         r = requests.post(f"{BASE_URL}/v1/chat/completions", json={
             "model": MODEL,
@@ -78,7 +80,7 @@ def test_image_inference():
                 {"type": "text", "text": "This is a top-down map. The blue arrow is an aircraft. The red crosshair is a mission target. Where is the aircraft relative to the target? What direction should it fly?"}
             ]}],
             "max_tokens": 200
-        }, timeout=120)
+        }, timeout=180)
 
         print(f"Status: {r.status_code}")
         print(f"VLM response: {r.json()['choices'][0]['message']['content']}")
