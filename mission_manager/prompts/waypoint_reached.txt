@@ -1,20 +1,14 @@
 Mission objective: {objective}
-Current state: {state}
-Event: Waypoint reached
-Your current pixel position on the map: ({pixel_x}, {pixel_y})
-
-Mission history:
-{decisions_summary}
-
-Available commands: goto_pixel, loiter, rtl
-
+Your current pixel position: ({pixel_x}, {pixel_y})
 Current aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
-Look at the map image carefully.
-- Find your current position (blue arrow) at pixel ({pixel_x}, {pixel_y})
-- The highway junction is DIRECTLY NORTH of the red crosshair target — look for the large road interchange visible in the upper portion of the map
-- Remember: NORTH = lower y values on this map
-- Only command rtl if your current y position is at or above (less than or equal to) the junction's y position — meaning you are over or past the junction
-- If you have not yet reached the junction, command goto_pixel with a lower y value to continue flying north toward it
+Look at the map image.
+- Your position is shown by the blue arrow at ({pixel_x}, {pixel_y})
+- The highway junction is the large road interchange visible in the upper portion of the map
+- The red crosshair marks the reference target
 
-What should the aircraft do next?
+Decision rule:
+- If the blue arrow is at or north of the highway junction (visually confirm on the map): command rtl
+- If the blue arrow is south of the highway junction: command goto_pixel pointing directly at the junction
+
+What is your decision?

@@ -49,9 +49,13 @@ class StateMachine:
 
         if self.state == MissionState.TRANSIT:
             self.transition_to(MissionState.ON_TASK)
-            self._llm_decision("waypoint_reached", seq, current_state)
 
-        elif self.state == MissionState.ON_TASK:
+        if self.state == MissionState.ON_TASK:
+            if current_state.get('pixel_y', 999) < 30:
+                print("[StateMachine] Aircraft at northern map boundary — auto RTL")
+                self.executor.execute({"command": "rtl", "reasoning": "Reached northern map boundary", "params": {}})
+                self.transition_to(MissionState.RETURNING)
+                return
             self._llm_decision("waypoint_reached", seq, current_state)
 
     def _llm_decision(self, trigger, seq, telemetry_state):
