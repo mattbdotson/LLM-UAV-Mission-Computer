@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import time
 import base64
 import datetime
@@ -133,6 +134,12 @@ class Planner:
             print(f"Backend error: {e} — falling back to RTL")
             return {"command": "rtl", "reasoning": "Backend error", "params": {}}
 
+    def _slugify(self, text, max_len=40):
+        slug = text.lower()
+        slug = re.sub(r'[^a-z0-9\s]', '', slug)
+        slug = re.sub(r'\s+', '_', slug.strip())
+        return slug[:max_len]
+
     def set_mission_info(self, objective):
         info_path = os.path.join(self.mission_dir, 'mission_info.txt')
         with open(info_path, 'w') as f:
@@ -141,6 +148,18 @@ class Planner:
             f.write(f"Model: {self.backend.get_name()}\n")
             f.write(f"Objective: {objective}\n")
         print(f"[Planner] Mission info saved: {info_path}")
+
+        slug = self._slugify(objective)
+
+        new_dir = os.path.join(os.path.dirname(self.mission_dir), f"{self.run_id}_{slug}")
+        os.rename(self.mission_dir, new_dir)
+        self.mission_dir = new_dir
+        print(f"[Planner] Mission folder renamed to: {os.path.basename(self.mission_dir)}")
+
+        new_debug = self.debug_dir.replace(self.run_id, f"{self.run_id}_{slug}")
+        os.rename(self.debug_dir, new_debug)
+        self.debug_dir = new_debug
+        print(f"[Planner] Debug folder renamed to: {os.path.basename(self.debug_dir)}")
 
     def _save_debug_map(self, image_b64, event, seq=0):
         filename = os.path.join(self.debug_dir, f"{event}_seq{seq}_{int(time.time())}.png")
