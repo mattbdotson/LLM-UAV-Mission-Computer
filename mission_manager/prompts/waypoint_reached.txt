@@ -15,4 +15,4 @@ Mission phases in order:
 - Phase 5: Return south to approximately where you started
 - Phase 6: RTL
 
-Review your current position and previous decisions to determine which phase you are in. Issue the appropriate goto_pixel command to make progress, or rtl if Phase 5 is complete.
+Review your current position and previous decisions to determine which phase you are in. Issue the appropriate goto_pixel command to make progress, or rtl when Phase 5 is complete (i.e., Phase 6).
