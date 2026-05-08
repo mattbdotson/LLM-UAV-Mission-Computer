@@ -10,4 +10,4 @@ Available commands: goto_pixel, rtl
 
 Current aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
-Look at the map image. Identify the green circle waypoint — that is your destination. Where should the aircraft fly first?
+Look at the map image. There is a distinctive oval horse racing track visible on the right side of the map. Fly toward it.

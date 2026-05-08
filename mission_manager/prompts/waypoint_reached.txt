@@ -2,12 +2,8 @@ Mission objective: {objective}
 Your current pixel position: ({pixel_x}, {pixel_y})
 Current aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
-Look at the map image.
-- Your position is shown by the blue arrow at ({pixel_x}, {pixel_y})
-- The green circle is your mission waypoint — fly to this location
-
-Decision rule:
-- If the blue arrow is over or near the green circle waypoint: command rtl
-- If the blue arrow is not yet at the green circle: command goto_pixel pointing toward the green circle
+Look at the map image. Find the oval horse racing track on the right side of the map.
+- If the blue arrow is over or near the oval track: command rtl
+- If the blue arrow has not yet reached the oval track: command goto_pixel pointing toward it
 
 What is your decision?
