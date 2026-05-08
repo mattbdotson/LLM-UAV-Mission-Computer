@@ -424,6 +424,40 @@ When a mission completes, copy this template and fill it in:
 
 ## Mission Log
 
+## Mission Result 005 — Multi-Phase East/West/North/South Traverse (Attempted)
+- Date: 2026-05-08
+- Simulation backend: ArduPlane SITL + JSBSim
+- VLM model: Gemma 4 E2B (Q4_K_M GGUF)
+- Inference backend: llama.cpp native CUDA, Jetson Orin Nano Super 8GB
+- Mission objective: Fly east to eastern edge, west to Monaro Highway, south to southern edge, north to northern edge, return to start, RTL
+- Outcome: PARTIAL — Phases 1 and 2 executed correctly but model regressed after STUCK recovery
+
+What happened:
+- Phase 1 (fly east): Model correctly flew to x=493, near eastern edge ✅
+- STUCK state fired correctly when model got stuck near eastern edge ✅
+- STUCK recovery: Model correctly identified Monaro Highway and flew to (256,256) ✅
+- Phase 2 detection: Model correctly identified it was at the highway ✅
+- Phase regression: After STUCK recovery, model re-evaluated from scratch and flew back east ❌
+- Root cause: No persistent phase completion memory — model cannot distinguish "I completed Phase 1 and am now doing Phase 2" from "I am between east and west, must be doing Phase 1"
+
+Key observations:
+- Thinking chains (re-enabled) showed clear reasoning about phase logic
+- STUCK state worked correctly as a safety mechanism
+- The model's phase reasoning is sound but stateless — it needs explicit phase completion tracking
+- Each LLM call re-evaluates mission state from scratch using only current position and last 2 decisions
+
+What this proves:
+- Phase completion tracking is a required architectural addition before complex multi-phase missions work reliably
+- The state machine needs to pass completed phases to the LLM, not just current position
+- STUCK recovery works but cannot fix stateless phase evaluation
+
+Next steps:
+- Implement phase completion tracking in MissionContext
+- Pass completed phases list to all prompts
+- Detect phase completion in StateMachine based on pixel position thresholds
+
+---
+
 ## Mission Result 004 — Monaro Highway Road Following (Attempted)
 - Date: 2026-05-07
 - Simulation backend: ArduPlane SITL + JSBSim
@@ -543,6 +577,10 @@ Next steps:
 
 13. **The STUCK state works as designed — it correctly detected the orbit and fired a reassessment prompt. However reassessment cannot fix a fundamental visual recognition failure.** STUCK is a useful safety mechanism but not a solution to model capability limits. *(Discovered: May 2026.)*
 
+14. **The LLM re-evaluates mission phase from scratch on every call.** Without explicit phase completion tracking passed in the prompt, it will regress to earlier phases after any state disruption (STUCK recovery, repeated waypoints). Phase memory must be external to the LLM. *(Discovered: May 2026.)*
+
+15. **The no_progress timeout fires too early — it triggers during TRANSIT before the first waypoint is reached.** The timer should only start after the first ON_TASK waypoint. A `mission_started` flag in EventMonitor fixes this. *(Discovered: May 2026.)*
+
 ---
 
 # Chapter 8: Safety & Risk
@@ -619,8 +657,7 @@ The autopilot already has its own failsafe behaviour; the VLM layer's job is to 
 | **2026-05-02** | 3 | LLM integration via Ollama. Stub planner replaced with real planner calling Llama 3.2. Arm/takeoff sequence shaken out. First text-only mission decisions. | Discover the coordinate-math limitation. Pivot to visual input — design the MapCompositor and the pixel-coordinate schema. |
 | **2026-05-03** | 4 | MapCompositor. VLM architecture (pixel coordinates, image input). VILA wrapper sketched. The pivot from GPS prompts to visual prompts. | Make the backend layer pluggable. Do a hard code review pass. Try a real VLM (moondream) and see what breaks. |
 | **2026-05-06** | 5 | Backend abstraction (`InferenceBackend` ABC). Code review pass — bug fixes across `main.py`, `executor.py`, `map_compositor.py`, `download_map.py`. Switched OllamaBackend to `/api/chat` for vision. Moondream tested, found wanting. JetPack upgrade. llama.cpp backend added. Gemma 4 E2B chosen. CLAUDE.md restructured with the inference backend history. MATT.md added and then restructured into chapter format. | Build llama.cpp natively with CUDA on Penny Royal. Download Gemma 4 E2B GGUF + mmproj. Run the first real vision inference against a map image. Populate Chapter 6 with the first mission result. |
-| **2026-05-07** | 6 | Mission Results 002 (boundary pattern, perfect 4/4) and 003 (free-form box pattern, model chose own corners). Event-driven state machine + MissionContext memory. Per-run mission archiving (prompts snapshot, slugified folder names). Sleep inhibition + backend retry to survive dev-PC sleeps. Map area enlarged to 4 km × 4 km. Disabled Gemma 4 thinking mode (`enable_thinking: false`), `max_tokens` 4096 → 512. Compass rose, larger aircraft arrow, no target marker. | Try a road-following mission to test visual landmark identification. Add a STUCK state for orbit recovery. |
-| **2026-05-08** | 7 | Mission Result 004 (Monaro Highway road-following, partial — model couldn't identify Lanyon Drive intersection visually). STUCK state added with 60 s no-progress timeout. Pivoted prompts to coordinate-trigger phase rules instead of landmark recognition. Systems-engineering docs created under `docs/` — requirements, SysML BDD (Mermaid `classDiagram`), hardware block diagram, ICD, formal state-machine spec. Captured `MissionContext.start_pixel_x/y` on first LLM call so prompts can reference the start position. | Fly the coordinate-triggered Monaro Highway traverse mission and capture as Mission Result 005. Decide whether E4B/Orin NX is worth pursuing for landmark recognition, or whether a classical CV pre-processor is the better path. |
+| **2026-05-08** | 6 | Terrain map tiles. Smaller 4 km × 4 km map area. STUCK state with 60 s `no_progress` timeout. Thinking mode re-enabled with 3000-token budget. `MissionContext.start_pixel_x/y` capture. Systems-engineering docs (`docs/` — requirements, SysML BDD, hardware block diagram, ICD, state-machine spec). Missions 003 (free-form box, success), 004 (Monaro Highway road-following, partial — visual landmarks unreliable at E2B), and 005 (multi-phase traverse, partial — phase regression after STUCK recovery). Phase completion tracking identified as required next step. | Implement phase completion tracking in `MissionContext`. Detect phase completion in `StateMachine` from pixel-position thresholds. Pass completed phases list to all prompts. Retry the multi-phase traverse mission. |
 
 ---
 

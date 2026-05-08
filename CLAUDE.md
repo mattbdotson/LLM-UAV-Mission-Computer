@@ -151,6 +151,9 @@ Running Llama 3.2 1B/3B against orbit and figure-8 missions revealed:
 - ✅ Mission 002 completed (boundary pattern, full success — perfect 4/4 decisions)
 - ✅ Event-driven planning loop working correctly (LLM called only at decision points)
 - ✅ Debug map images saved per run in `mission_manager/debug/maps/<run_id>/`
+- ✅ Multi-phase missions with coordinate triggers work reliably
+- ❌ Road following with visual landmark detection does not work at E2B scale
+- ⬜ Phase completion tracking identified as next required architectural addition
 
 ## Proven Capabilities
 - Gemma 4 E2B correctly understands the pixel coordinate system (x=0 west, y=0 north)
@@ -158,6 +161,16 @@ Running Llama 3.2 1B/3B against orbit and figure-8 missions revealed:
 - State machine fires LLM only at decision points (not time-driven)
 - Mission context memory correctly accumulates across decisions
 - Image is being sent and received correctly by llama-server
+- Phase tracking across multiple LLM calls works when phases have explicit coordinate triggers
+- STUCK state fires correctly and transitions back to ON_TASK when new waypoint reached
+- Thinking mode re-enabled with 3000 token budget — thinking chains visible in logs
+- Mission start pixel position tracked and passed to prompts
+
+## Known Limitations
+- Model has no persistent memory of completed phases without explicit tracking — re-evaluates from scratch each call
+- Without phase completion tracking, model can regress to earlier phases after STUCK state recovery
+- 60s no_progress timeout fires during TRANSIT phase before first waypoint reached — needs `mission_started` flag
+- Visual landmark identification unreliable at 2B scale — coordinate-based phase triggers required
 
 ## Upgrade Path
 1. ✅ SITL + mission manager pipeline

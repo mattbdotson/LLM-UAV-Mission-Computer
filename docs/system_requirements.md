@@ -15,6 +15,8 @@
 | MIS-003 | The system SHALL maintain a decision log capturing command and reasoning for every LLM call |
 | MIS-004 | The system SHALL support mission objectives expressed as pixel coordinate navigation |
 | MIS-005 | The system SHALL support multi-phase missions with conditional phase transitions |
+| MIS-006 | The system SHALL track completed mission phases explicitly and pass them to the LLM in every prompt |
+| MIS-007 | The system SHALL detect phase completion based on pixel position thresholds defined per mission |
 
 ## 2. Safety Requirements
 
@@ -27,6 +29,7 @@
 | SAF-005 | The system SHALL transition to STUCK state after 60 seconds without waypoint progress |
 | SAF-006 | The system SHALL command RTL or continue mission from STUCK state based on LLM assessment |
 | SAF-007 | The system SHALL NOT arm the aircraft unless the VLM backend health check passes (future — not yet implemented) |
+| SAF-008 | The system SHALL NOT start the no_progress timer until the first ON_TASK waypoint has been reached |
 
 ## 3. Performance Requirements
 
