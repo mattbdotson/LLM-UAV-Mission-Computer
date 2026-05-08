@@ -41,9 +41,10 @@ class LlamaCppBackend(InferenceBackend):
         payload = {
             "model": "gemma4-e2b",
             "messages": messages,
-            "max_tokens": 4096,
+            "max_tokens": 512,
             "temperature": 0.1,
-            "cache_prompt": False
+            "cache_prompt": False,
+            "chat_template_kwargs": {"enable_thinking": False}
         }
 
         print(f"[LlamaCpp] Sending request — image included: {has_image}, image size: {len(image_b64) if has_image else 0} bytes")
@@ -61,11 +62,7 @@ class LlamaCppBackend(InferenceBackend):
                     time.sleep(5)
                 else:
                     raise
-        message = response.json()["choices"][0]["message"]
-        reasoning = message.get("reasoning_content")
-        if reasoning:
-            print(f"[THINKING] {reasoning}")
-        return message["content"]
+        return response.json()["choices"][0]["message"]["content"]
 
     def clear_cache(self):
         try:
