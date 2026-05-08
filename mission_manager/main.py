@@ -14,7 +14,7 @@ from core.event_monitor import EventMonitor
 load_dotenv(os.path.join(os.path.dirname(__file__), 'config', '.env'))
 
 CONNECTION_STRING = "udp:localhost:14552"
-MISSION_OBJECTIVE = "Fly south along the Monaro Highway to the Lanyon Drive intersection, then turn northeast and follow Lanyon Drive to the edge of the map, then return southwest along Lanyon Drive back to the Monaro Highway intersection, then return north along the Monaro Highway and RTL near where you started."
+MISSION_OBJECTIVE = "Follow the Monaro Highway south to the bottom edge of the map, then follow it north to the top edge of the map, then return south to your starting position and RTL."
 TOTAL_WAYPOINTS = 5
 
 def prevent_sleep():
