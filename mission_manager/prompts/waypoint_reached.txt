@@ -5,10 +5,6 @@ Aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 Previous decisions:
 {decisions_summary}
 
-Road reference:
-- Monaro Highway: prominent wide road with red centreline running north-south through center of map
-- Lanyon Drive: road branching northeast from the Monaro Highway in the southern portion of the map
-
 Mission phases:
 - Phase 1: Fly south along Monaro Highway until you reach the Lanyon Drive intersection (bottom portion of map)
 - Phase 2: Turn northeast and follow Lanyon Drive to the eastern edge of the map

@@ -41,7 +41,7 @@ class LlamaCppBackend(InferenceBackend):
         payload = {
             "model": "gemma4-e2b",
             "messages": messages,
-            "max_tokens": 2048,
+            "max_tokens": 4096,
             "temperature": 0.1,
             "cache_prompt": False
         }

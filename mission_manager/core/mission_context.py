@@ -46,9 +46,9 @@ class MissionContext:
         if not self.decisions:
             return "No decisions made yet"
         lines = []
-        for d in self.decisions[-5:]:
+        for d in self.decisions[-2:]:
             lines.append(f"- [{d['state']}] {d['trigger']}: {d['command']} — {d['reasoning']}")
-        return "\n".join(lines[-5:])
+        return "\n".join(lines[-2:])
 
     def waypoints_summary(self):
         return f"{len(self.waypoints_visited)} of {self.total_waypoints} visited"
