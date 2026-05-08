@@ -82,9 +82,9 @@ def download_map(center_lat, center_lon, zoom, radius_tiles=2, tile_source='osm'
 
 if __name__ == "__main__":
     print("=== Downloading OSM tile ===")
-    bounds_osm = download_map(CENTER_LAT, CENTER_LON, ZOOM, radius_tiles=1, tile_source='osm')
+    bounds_osm = download_map(CENTER_LAT, CENTER_LON, ZOOM, radius_tiles=2, tile_source='osm')
     print("\n=== Downloading Terrain tile ===")
-    bounds_terrain = download_map(CENTER_LAT, CENTER_LON, ZOOM, radius_tiles=1, tile_source='terrain')
+    bounds_terrain = download_map(CENTER_LAT, CENTER_LON, ZOOM, radius_tiles=2, tile_source='terrain')
     print("\n=== Done ===")
     print(f"OSM bounds:     {bounds_osm}")
     print(f"Terrain bounds: {bounds_terrain}")

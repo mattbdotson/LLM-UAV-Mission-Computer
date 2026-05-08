@@ -6,10 +6,10 @@ MAP_TILE_PATH_TERRAIN = "map_tile_terrain.png"  # requires Stadia Maps API key
 MAP_TILE_PATH = MAP_TILE_PATH_OSM  # default (terrain requires API key)
 
 MAP_BOUNDS = (
-    -35.38009299209215,   # min_lat
-    -35.353216101238225,  # max_lat
-    149.150390625,        # min_lon
-    149.183349609375      # max_lon
+    -35.389049966911664,  # min_lat
+    -35.34425514918409,   # max_lat
+    149.139404296875,     # min_lon
+    149.1943359375        # max_lon
 )
 
 # Mission target for orbit mission (SITL default area center)
