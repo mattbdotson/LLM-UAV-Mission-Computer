@@ -51,7 +51,7 @@ class StateMachine:
             self.transition_to(MissionState.ON_TASK)
 
         if self.state == MissionState.ON_TASK:
-            if current_state.get('pixel_y', 999) < 30:
+            if current_state.get('pixel_y', 999) < 20:
                 print("[StateMachine] Aircraft at northern map boundary — auto RTL")
                 self.executor.execute({"command": "rtl", "reasoning": "Reached northern map boundary", "params": {}})
                 self.transition_to(MissionState.RETURNING)

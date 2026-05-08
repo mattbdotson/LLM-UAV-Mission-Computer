@@ -51,12 +51,7 @@ class MapCompositor:
                     draw.line([trail_pixels[i], trail_pixels[i+1]],
                              fill=(55, 138, 221), width=12)
 
-            # Mission target — filled green circle with white border
-            if mission_target:
-                tx, ty = self.gps_to_pixel(*mission_target)
-                r = 50
-                draw.ellipse([tx-r, ty-r, tx+r, ty+r],
-                            fill=(50, 200, 50), outline=(255, 255, 255), width=12)
+            # Mission target marker removed — no target overlay for boundary pattern mission
 
             # Aircraft arrow — white outline first, blue fill on top
             if lat and lon:

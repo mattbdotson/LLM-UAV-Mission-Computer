@@ -70,8 +70,8 @@ class Executor:
                 float(params.get("alt", 100))
             )
         elif cmd == "goto_pixel":
-            x = int(params.get("x", 192))
-            y = int(params.get("y", 192))
+            x = max(0, min(511, int(params.get("x", 256))))
+            y = max(0, min(511, int(params.get("y", 256))))
             alt = float(params.get("alt", 100))
             lat, lon = self._get_compositor().pixel_to_gps(x, y)
             print(f"Pixel ({x},{y}) → GPS lat={lat:.5f}, lon={lon:.5f}")

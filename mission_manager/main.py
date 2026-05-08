@@ -13,7 +13,7 @@ from core.event_monitor import EventMonitor
 load_dotenv(os.path.join(os.path.dirname(__file__), 'config', '.env'))
 
 CONNECTION_STRING = "udp:localhost:14552"
-MISSION_OBJECTIVE = "Fly to the horse racing track visible on the right side of the map, then RTL"
+MISSION_OBJECTIVE = "Fly north until you are within 20 pixels of the north edge of the map (y <= 20), then fly east until you are within 20 pixels of the east edge of the map (x >= 492), then RTL."
 TOTAL_WAYPOINTS = 5
 
 def cleanup_stale_sitl():
