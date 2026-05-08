@@ -20,7 +20,11 @@ class MissionContext:
     waypoints_visited: List[WaypointVisit] = field(default_factory=list)
     decisions: List[Dict] = field(default_factory=list)
     current_state: str = "PREFLIGHT"
+    stuck_count: int = 0
     start_time: float = field(default_factory=time.time)
+
+    def record_stuck(self):
+        self.stuck_count += 1
 
     def add_waypoint_visit(self, seq, lat, lon, decision, reasoning):
         self.waypoints_visited.append(WaypointVisit(

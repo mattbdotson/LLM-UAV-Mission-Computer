@@ -6,6 +6,7 @@ class MissionState(Enum):
     TAKEOFF = "TAKEOFF"
     TRANSIT = "TRANSIT"
     ON_TASK = "ON_TASK"
+    STUCK = "STUCK"
     RETURNING = "RETURNING"
     LANDED = "LANDED"
 
@@ -57,13 +58,18 @@ class StateMachine:
                 self.transition_to(MissionState.RETURNING)
                 return
             self._llm_decision("waypoint_reached", seq, current_state)
+        elif self.state == MissionState.STUCK:
+            self.transition_to(MissionState.ON_TASK)
+            self._llm_decision("waypoint_reached", seq, current_state)
 
     def handle_no_progress(self, data):
         if self.state == MissionState.ON_TASK:
             elapsed = data.get("elapsed", 0)
-            print(f"[StateMachine] No progress for {elapsed:.0f}s — reassessing")
+            print(f"[StateMachine] No progress for {elapsed:.0f}s — transitioning to STUCK")
+            self.transition_to(MissionState.STUCK)
+            self.context.record_stuck()
             current_state = self.telemetry.get_state()
-            self._llm_decision("no_progress", 0, current_state)
+            self._llm_decision("stuck", 0, current_state)
 
     def _llm_decision(self, trigger, seq, telemetry_state):
         print(f"[StateMachine] Consulting LLM for {trigger} at waypoint {seq}")

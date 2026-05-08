@@ -1,0 +1,10 @@
+Mission: {objective}
+Current position: ({pixel_x}, {pixel_y})
+Aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
+
+Previous decisions:
+{decisions_summary}
+
+WARNING: The aircraft has been orbiting without progress for over 60 seconds. You are now in STUCK state.
+
+Look at the map carefully. Identify where you are and where you need to go next based on the mission objective. Issue a goto_pixel command to a clearly different location than your previous waypoints to escape the orbit and make progress.

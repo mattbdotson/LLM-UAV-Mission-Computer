@@ -34,6 +34,9 @@ firmware as process)                  ├── Telemetry Listener
 - **Structured JSON output** — VLM must output a JSON command with a reasoning field for traceability
 - **RTL fallback** — any parse error or backend failure defaults to Return To Launch
 
+### State Machine
+States: PREFLIGHT → TAKEOFF → TRANSIT → ON_TASK ↔ STUCK → RETURNING → LANDED
+
 ## Project Structure
 LLM-UAV-Mission-Computer/
 ├── CLAUDE.md                          # this file
