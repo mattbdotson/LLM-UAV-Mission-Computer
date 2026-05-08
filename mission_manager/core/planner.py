@@ -95,6 +95,16 @@ class Planner:
 
         self._save_debug_map(image_b64, event, seq=event_data.get("seq", 0) if event_data else 0)
 
+        # Compute pixel position from GPS and inject into state for prompt templates
+        state = dict(state)  # don't mutate caller's dict
+        lat, lon = state.get("lat"), state.get("lon")
+        if lat is not None and lon is not None:
+            full_x, full_y = self.compositor.gps_to_pixel(lat, lon)
+            vlm_w, vlm_h = self.compositor.vlm_size
+            state["pixel_x"] = int(full_x * vlm_w / self.compositor.w)
+            state["pixel_y"] = int(full_y * vlm_h / self.compositor.h)
+            print(f"[Planner] Aircraft pixel position: ({state['pixel_x']}, {state['pixel_y']})")
+
         user_prompt = self._load_event_prompt(event, state, context, event_data)
 
         try:
