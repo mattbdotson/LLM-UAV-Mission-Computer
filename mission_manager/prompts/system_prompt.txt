@@ -4,7 +4,7 @@ You are given a top-down map image of the current flight area.
 On the map:
 - Blue arrow = aircraft current position and heading direction
 - Blue line = recent flight trail
-- Red crosshair = mission target marker
+- Green circle = mission waypoint — fly to this location
 - Compass rose = bottom left corner
 
 Pixel coordinate system:

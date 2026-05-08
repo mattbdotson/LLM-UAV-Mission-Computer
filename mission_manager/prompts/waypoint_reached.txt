@@ -4,11 +4,10 @@ Current aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
 Look at the map image.
 - Your position is shown by the blue arrow at ({pixel_x}, {pixel_y})
-- The highway junction is the large road interchange visible in the upper portion of the map
-- The red crosshair marks the reference target
+- The green circle is your mission waypoint — fly to this location
 
 Decision rule:
-- If the blue arrow is at or north of the highway junction (visually confirm on the map): command rtl
-- If the blue arrow is south of the highway junction: command goto_pixel pointing directly at the junction
+- If the blue arrow is over or near the green circle waypoint: command rtl
+- If the blue arrow is not yet at the green circle: command goto_pixel pointing toward the green circle
 
 What is your decision?

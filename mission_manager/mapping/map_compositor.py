@@ -51,16 +51,12 @@ class MapCompositor:
                     draw.line([trail_pixels[i], trail_pixels[i+1]],
                              fill=(55, 138, 221), width=12)
 
-            # Mission target — larger circle and extended crosshair lines
+            # Mission target — filled green circle with white border
             if mission_target:
                 tx, ty = self.gps_to_pixel(*mission_target)
-                r = 60
-                lw = 12
-                ext = 25
+                r = 50
                 draw.ellipse([tx-r, ty-r, tx+r, ty+r],
-                            outline=(226, 75, 74), width=lw)
-                draw.line([tx-r-ext, ty, tx+r+ext, ty], fill=(226, 75, 74), width=lw)
-                draw.line([tx, ty-r-ext, tx, ty+r+ext], fill=(226, 75, 74), width=lw)
+                            fill=(50, 200, 50), outline=(255, 255, 255), width=12)
 
             # Aircraft arrow — white outline first, blue fill on top
             if lat and lon:

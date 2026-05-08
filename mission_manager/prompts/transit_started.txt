@@ -10,4 +10,4 @@ Available commands: goto_pixel, rtl
 
 Current aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
-Look at the map image. Identify the landmarks relevant to the mission objective. Where should the aircraft fly first?
+Look at the map image. Identify the green circle waypoint — that is your destination. Where should the aircraft fly first?
