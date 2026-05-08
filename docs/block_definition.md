@@ -43,9 +43,12 @@ classDiagram
         +objective: str
         +decisions: List
         +stuck_count: int
+        +start_pixel_x: Optional[int]
+        +start_pixel_y: Optional[int]
         +decisions_summary() str
         +add_decision() void
         +record_stuck() void
+        +set_start_pixel(x, y) void
     }
     class Planner {
         <<block>>
@@ -169,7 +172,7 @@ flowchart LR
 **Responsibility:** Accumulates mission memory across the flight. Provides decision history to Planner.
 **Inputs:** Decision records from StateMachine
 **Outputs:** decisions_summary(), waypoints_summary() for prompt population
-**Key attributes:** Persistent across the mission. Provides LLM episodic memory.
+**Key attributes:** Persistent across the mission. Provides LLM episodic memory. Captures `start_pixel_x`/`start_pixel_y` on the first LLM call (idempotent — first call wins) so prompts can reference the mission start position throughout the flight.
 
 ### BLK-005: Planner
 **Responsibility:** Generates map image, loads prompt template, calls inference backend, parses response.

@@ -57,6 +57,8 @@ The LLM is called at these state transitions only:
 | ON_TASK | waypoint_reached | waypoint_reached.txt |
 | STUCK | (on entry) | stuck.txt |
 
+The first LLM call (the TRANSIT → ON_TASK transition, fired by the `transit_started` event at cruise altitude) also captures the aircraft's pixel position into `MissionContext.start_pixel_x` / `start_pixel_y`. The capture is idempotent — once set, the start position is immutable and is exposed to all subsequent prompts as `{start_pixel_x}` / `{start_pixel_y}` so the model can reason about "am I back near where I started" without coordinate arithmetic.
+
 ## Fallback Behavior
 
 All LLM decision points fall back to RTL on:
