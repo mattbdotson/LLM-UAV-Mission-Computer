@@ -3,6 +3,7 @@ import os
 import time
 import base64
 import datetime
+import shutil
 from dotenv import load_dotenv
 from backends import load_backend
 from mapping.map_compositor import MapCompositor
@@ -26,10 +27,15 @@ class Planner:
         )
         self.system_prompt = load_prompt('system_prompt.txt')
         self.user_prompt_template = load_prompt('user_prompt.txt')
-        run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.debug_dir = os.path.join(os.path.dirname(__file__), '..', 'debug', 'maps', run_id)
+        self.run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.debug_dir = os.path.join(os.path.dirname(__file__), '..', 'debug', 'maps', self.run_id)
         os.makedirs(self.debug_dir, exist_ok=True)
         print(f"[Planner] Debug images will be saved to: {self.debug_dir}")
+        self.mission_dir = os.path.join(os.path.dirname(__file__), '..', 'missions', self.run_id)
+        os.makedirs(self.mission_dir, exist_ok=True)
+        print(f"[Planner] Mission archive: {self.mission_dir}")
+        prompts_src = os.path.join(os.path.dirname(__file__), '..', 'prompts')
+        shutil.copytree(prompts_src, os.path.join(self.mission_dir, 'prompts'))
         print(f"Planner initialized ({'stub' if stub else self.backend.get_name()} mode)")
 
     def decide(self, state):
@@ -127,6 +133,15 @@ class Planner:
             print(f"Backend error: {e} — falling back to RTL")
             return {"command": "rtl", "reasoning": "Backend error", "params": {}}
 
+    def set_mission_info(self, objective):
+        info_path = os.path.join(self.mission_dir, 'mission_info.txt')
+        with open(info_path, 'w') as f:
+            f.write(f"Date: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"Run ID: {self.run_id}\n")
+            f.write(f"Model: {self.backend.get_name()}\n")
+            f.write(f"Objective: {objective}\n")
+        print(f"[Planner] Mission info saved: {info_path}")
+
     def _save_debug_map(self, image_b64, event, seq=0):
         filename = os.path.join(self.debug_dir, f"{event}_seq{seq}_{int(time.time())}.png")
         with open(filename, 'wb') as f:
@@ -143,7 +158,7 @@ class Planner:
         except FileNotFoundError:
             template = "Current state: {state}\nEvent: {event}\nWhat should the aircraft do next?"
 
-        return template.format(
+        formatted_prompt = template.format(
             objective=context.objective,
             state=context.current_state,
             event=event,
@@ -157,3 +172,7 @@ class Planner:
             pixel_x=state.get('pixel_x', 0),
             pixel_y=state.get('pixel_y', 0),
         )
+        prompt_filename = os.path.join(self.mission_dir, f"{event}_{int(time.time())}_user_prompt.txt")
+        with open(prompt_filename, 'w') as f:
+            f.write(formatted_prompt)
+        return formatted_prompt

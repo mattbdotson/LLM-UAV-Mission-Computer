@@ -92,6 +92,7 @@ def main():
         objective=MISSION_OBJECTIVE,
         total_waypoints=TOTAL_WAYPOINTS,
     )
+    planner.set_mission_info(mission_context.objective)
 
     state_machine = StateMachine(mission_context, planner, executor, telemetry)
     event_monitor = EventMonitor(telemetry, state_machine)
