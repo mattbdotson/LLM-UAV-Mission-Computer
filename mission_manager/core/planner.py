@@ -143,5 +143,7 @@ class Planner:
             heading=f"{state.get('heading', 0):.0f}",
             airspeed=f"{state.get('airspeed', 0):.0f}",
             seq=event_data.get("seq", 0) if event_data else 0,
-            total_waypoints=context.total_waypoints
+            total_waypoints=context.total_waypoints,
+            pixel_x=state.get('pixel_x', 0),
+            pixel_y=state.get('pixel_y', 0),
         )

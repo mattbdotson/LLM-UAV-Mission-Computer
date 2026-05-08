@@ -1,13 +1,13 @@
 Mission objective: {objective}
-Current mission state: {state}
-Event: Aircraft has reached cruise altitude and is ready to begin transit to the mission area.
+Current state: {state}
+Event: Aircraft has reached cruise altitude and is beginning its mission.
+Your current pixel position on the map: ({pixel_x}, {pixel_y})
+
 Mission history:
 {decisions_summary}
 
-Available commands:
-- goto_pixel: fly to a location on the map (specify x, y pixel coordinates 0-512)
-- rtl: abort mission, return to launch
+Available commands: goto_pixel, rtl
 
 Current aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
-Look at the map. Where should the aircraft fly first to begin its mission?
+Look at the map image. Identify the landmarks relevant to the mission objective. Where should the aircraft fly first?

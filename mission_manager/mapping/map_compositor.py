@@ -35,7 +35,7 @@ class MapCompositor:
     def compose(self, state, mission_target=None):
         try:
             img = self.base.copy()
-            draw = ImageDraw.Draw(img)
+            draw = ImageDraw.Draw(img, "RGBA")
 
             lat = state.get("lat")
             lon = state.get("lon")
@@ -44,50 +44,75 @@ class MapCompositor:
             if lat and lon:
                 self.update_trail(lat, lon)
 
+            # Flight trail
             if len(self.trail) > 1:
                 trail_pixels = [self.gps_to_pixel(la, lo) for la, lo in self.trail]
                 for i in range(len(trail_pixels) - 1):
                     draw.line([trail_pixels[i], trail_pixels[i+1]],
                              fill=(55, 138, 221), width=12)
 
+            # Mission target — larger circle and extended crosshair lines
             if mission_target:
                 tx, ty = self.gps_to_pixel(*mission_target)
-                r = 50
+                r = 60
+                lw = 12
+                ext = 25
                 draw.ellipse([tx-r, ty-r, tx+r, ty+r],
-                            outline=(226, 75, 74), width=10)
-                draw.line([tx-r-15, ty, tx+r+15, ty], fill=(226, 75, 74), width=8)
-                draw.line([tx, ty-r-15, tx, ty+r+15], fill=(226, 75, 74), width=8)
+                            outline=(226, 75, 74), width=lw)
+                draw.line([tx-r-ext, ty, tx+r+ext, ty], fill=(226, 75, 74), width=lw)
+                draw.line([tx, ty-r-ext, tx, ty+r+ext], fill=(226, 75, 74), width=lw)
 
+            # Aircraft arrow — white outline first, blue fill on top
             if lat and lon:
                 ax, ay = self.gps_to_pixel(lat, lon)
                 heading_rad = math.radians(heading)
-                length = 70
+                length = 100
+                spread = 50
                 tip_x = ax + length * math.sin(heading_rad)
                 tip_y = ay - length * math.cos(heading_rad)
-                left_x = ax + 35 * math.sin(heading_rad - 2.4)
-                left_y = ay - 35 * math.cos(heading_rad - 2.4)
-                right_x = ax + 35 * math.sin(heading_rad + 2.4)
-                right_y = ay - 35 * math.cos(heading_rad + 2.4)
-                draw.polygon(
-                    [(tip_x, tip_y), (left_x, left_y), (ax, ay), (right_x, right_y)],
-                    fill=(55, 138, 221),
-                    outline=(255, 255, 255)
-                )
+                left_x = ax + spread * math.sin(heading_rad - 2.4)
+                left_y = ay - spread * math.cos(heading_rad - 2.4)
+                right_x = ax + spread * math.sin(heading_rad + 2.4)
+                right_y = ay - spread * math.cos(heading_rad + 2.4)
+                poly = [(tip_x, tip_y), (left_x, left_y), (ax, ay), (right_x, right_y)]
+                # White outline
+                draw.polygon(poly, fill=None, outline=(255, 255, 255))
+                draw.line([(tip_x, tip_y), (left_x, left_y)], fill=(255, 255, 255), width=10)
+                draw.line([(left_x, left_y), (ax, ay)], fill=(255, 255, 255), width=10)
+                draw.line([(ax, ay), (right_x, right_y)], fill=(255, 255, 255), width=10)
+                draw.line([(right_x, right_y), (tip_x, tip_y)], fill=(255, 255, 255), width=10)
+                # Blue fill
+                draw.polygon(poly, fill=(55, 138, 221))
 
-            # Compass rose — sized for the full-res tile, readable after resize to 384px
+            # Compass rose — bottom-left corner, 120x120px circle equivalent on full-res image
+            # Scale factor: full image is 2304px, compass circle diameter maps to ~120px at 512
+            cr = 240  # radius in full-res pixels (~120px * 2304/512 scaling factor ~= 540, use 240 for compact)
+            cx = 20 + cr  # left edge + radius
+            cy = self.h - 20 - cr  # bottom edge - radius
+
+            # Semi-transparent white background
+            draw.ellipse([cx-cr, cy-cr, cx+cr, cy+cr],
+                        fill=(255, 255, 255, 180), outline=(40, 40, 40), width=6)
+
+            # North arrow — filled triangle pointing up
+            arrow_len = int(cr * 0.7)
+            draw.polygon(
+                [(cx, cy - arrow_len),
+                 (cx - arrow_len // 3, cy + arrow_len // 4),
+                 (cx + arrow_len // 3, cy + arrow_len // 4)],
+                fill=(30, 30, 30)
+            )
+
+            # "N" label just above the tip
             try:
-                font = ImageFont.load_default(size=80)
+                font = ImageFont.load_default(size=int(cr * 0.55))
             except TypeError:
                 font = ImageFont.load_default()
+            draw.text((cx, cy - arrow_len - int(cr * 0.55)),
+                     "N", fill=(30, 30, 30), font=font, anchor="mm")
 
-            draw.ellipse([20, 20, 480, 480],
-                        fill=(255, 255, 255), outline=(0, 0, 0), width=8)
-            draw.text((225, 30), "N", fill=(0, 0, 0), font=font)
-            draw.text((225, 360), "S", fill=(0, 0, 0), font=font)
-            draw.text((30, 195), "W", fill=(0, 0, 0), font=font)
-            draw.text((400, 195), "E", fill=(0, 0, 0), font=font)
-
-            img_resized = img.resize(self.vlm_size, Image.LANCZOS)
+            img_rgb = img.convert("RGB")
+            img_resized = img_rgb.resize(self.vlm_size, Image.LANCZOS)
 
             buf = io.BytesIO()
             img_resized.save(buf, format="PNG")
