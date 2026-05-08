@@ -109,6 +109,35 @@ classDiagram
 
 > **Note:** This diagram is a SysML Block Definition Diagram (BDD) expressed in Mermaid `classDiagram` notation for toolchain compatibility (GitHub, VS Code, and most markdown renderers display Mermaid natively). The `<<block>>` stereotypes, composition (`*--`), aggregation (`o--`), and generalization (`<|--`) relationships follow standard SysML semantics. When a formal SysML authoring tool (e.g. Cameo, Eclipse Papyrus, or a SysML v2 textual tool) is introduced into the workflow, the canonical `.sysml` source should be generated from this diagram and this Mermaid representation should be regenerated from the `.sysml` source as the rendered view.
 
+## Hardware Block Diagram (SITL Phase)
+
+The diagram below shows the physical deployment for the current SITL phase. The autopilot is virtualized inside WSL2 on the Dev PC; the VLM inference server runs on a separate physical Jetson box on the same LAN.
+
+```mermaid
+flowchart LR
+    subgraph DevPC["Dev PC (Windows 11)"]
+        subgraph WSL2["WSL2 (Ubuntu 22.04)"]
+            JSBSim["JSBSim<br/>(flight physics)"]
+            SITL["ArduPlane SITL<br/>(autopilot firmware)"]
+            MM["Mission Manager<br/>(main.py)"]
+            JSBSim <--> SITL
+            SITL <-->|"MAVLink UDP :14552"| MM
+        end
+    end
+
+    subgraph PR["Penny Royal (Jetson Orin Nano Super 8GB)"]
+        Llama["llama-server<br/>(Gemma 4 E2B + mmproj)"]
+    end
+
+    MM <-->|"HTTP :8080 — Ethernet/LAN"| Llama
+```
+
+**Notes:**
+- Dev PC and Penny Royal are physically separate machines on the same Ethernet/LAN segment. Penny Royal is reachable at `192.168.1.177`.
+- The autopilot is a virtualized ArduPlane SITL process inside WSL2 — there is no physical autopilot, RC link, or airframe in this phase.
+- The MAVLink interface is loopback-style inside WSL2 (UDP `localhost:14552`); only the HTTP inference link crosses the physical LAN.
+- This diagram must be updated before HIL or real-flight testing — the Mission Manager moves onto the airframe, the autopilot becomes physical hardware, and a radio link replaces the loopback MAVLink UDP socket.
+
 ## Block Definitions
 
 ### BLK-001: TelemetryListener
