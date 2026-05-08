@@ -2,6 +2,6 @@ Mission: {objective}
 Current position: ({pixel_x}, {pixel_y})
 Aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
-The Monaro Highway is the prominent road with a red centreline running north-south through the center of the map at approximately x=256.
+The Monaro Highway is the prominent road with a red centreline running north-south through the center of the map.
 
-Issue your first goto_pixel command to begin flying south along the Monaro Highway.
+Issue your first goto_pixel command to begin the mission by flying east.

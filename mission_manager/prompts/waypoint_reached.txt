@@ -7,10 +7,12 @@ Previous decisions:
 
 The Monaro Highway runs north-south through the center of the map.
 
-Phase rules:
-- Phase 1: Fly south along the Monaro Highway until you reach the southern edge of the map
-- Phase 2: Fly north along the Monaro Highway until you reach the northern edge of the map
-- Phase 3: Return south along the Monaro Highway to approximately where you started
-- Phase 3 complete: Command rtl
+Mission phases in order:
+- Phase 1: Fly east to the eastern edge of the map
+- Phase 2: Fly west until you reach the Monaro Highway
+- Phase 3: Fly south along the Monaro Highway to the southern edge of the map
+- Phase 4: Fly north along the Monaro Highway to the northern edge of the map
+- Phase 5: Return south to approximately where you started
+- Phase 6: RTL
 
-Your starting position was approximately ({start_pixel_x}, {start_pixel_y}) at mission start. Review your previous decisions to determine which phase you are in. Issue the appropriate command.
+Review your current position and previous decisions to determine which phase you are in. Issue the appropriate goto_pixel command to make progress, or rtl if Phase 5 is complete.
