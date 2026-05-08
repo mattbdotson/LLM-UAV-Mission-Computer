@@ -10,21 +10,104 @@
 
 The LLM-UAV Mission Computer sits between the autopilot and the VLM inference engine. It translates autopilot telemetry into visual context for the VLM, and translates VLM decisions into MAVLink commands for the autopilot.
 
+## SysML Block Definition Diagram
+
+```mermaid
+classDiagram
+    class MissionComputer {
+        <<block>>
+    }
+    class TelemetryListener {
+        <<block>>
+        +connection: MAVLinkConnection
+        +state: AircraftState
+        +update() void
+        +get_state() AircraftState
+        +get_raw_messages() List
+    }
+    class EventMonitor {
+        <<block>>
+        +no_progress_timeout: int = 60
+        +last_waypoint_time: float
+        +check(messages: List) void
+    }
+    class StateMachine {
+        <<block>>
+        +state: MissionState
+        +context: MissionContext
+        +on_event(event: str, data: dict) void
+        +transition_to(state: MissionState) void
+    }
+    class MissionContext {
+        <<block>>
+        +objective: str
+        +decisions: List
+        +stuck_count: int
+        +decisions_summary() str
+        +add_decision() void
+        +record_stuck() void
+    }
+    class Planner {
+        <<block>>
+        +backend: InferenceBackend
+        +compositor: MapCompositor
+        +decide_with_context() Command
+    }
+    class MapCompositor {
+        <<block>>
+        +base: Image
+        +bounds: tuple
+        +vlm_size: tuple
+        +compose() str
+        +gps_to_pixel() tuple
+        +pixel_to_gps() tuple
+    }
+    class InferenceBackend {
+        <<block>>
+        <<abstract>>
+        +generate() str
+        +health_check() bool
+        +get_name() str
+    }
+    class LlamaCppBackend {
+        <<block>>
+        +host: str
+        +port: int
+        +generate() str
+        +health_check() bool
+    }
+    class OllamaBackend {
+        <<block>>
+        +host: str
+        +port: int
+        +model: str
+        +generate() str
+        +health_check() bool
+    }
+    class Executor {
+        <<block>>
+        +connection: MAVLinkConnection
+        +execute(command: Command) void
+        +arm_and_takeoff() void
+    }
+
+    MissionComputer *-- TelemetryListener : owns
+    MissionComputer *-- EventMonitor : owns
+    MissionComputer *-- StateMachine : owns
+    MissionComputer *-- Planner : owns
+    MissionComputer *-- Executor : owns
+    StateMachine *-- MissionContext : owns
+    Planner *-- MapCompositor : owns
+    Planner o-- InferenceBackend : uses
+    InferenceBackend <|-- LlamaCppBackend : realizes
+    InferenceBackend <|-- OllamaBackend : realizes
+    EventMonitor o-- StateMachine : notifies
+    StateMachine o-- Planner : calls
+    StateMachine o-- Executor : commands
+    TelemetryListener o-- EventMonitor : feeds
 ```
-┌─────────────────────────────────────────────────────┐
-│              LLM-UAV Mission Computer               │
-│                                                     │
-│  TelemetryListener → EventMonitor → StateMachine    │
-│                                          ↓          │
-│                       Planner → MapCompositor       │
-│                          ↓                          │
-│                       Backend → [VLM]               │
-│                          ↓                          │
-│                       Executor                      │
-└─────────────────────────────────────────────────────┘
-        ↕ MAVLink                      ↕ HTTP
-   [Autopilot]                  [Inference Server]
-```
+
+> **Note:** This diagram is a SysML Block Definition Diagram (BDD) expressed in Mermaid `classDiagram` notation for toolchain compatibility (GitHub, VS Code, and most markdown renderers display Mermaid natively). The `<<block>>` stereotypes, composition (`*--`), aggregation (`o--`), and generalization (`<|--`) relationships follow standard SysML semantics. When a formal SysML authoring tool (e.g. Cameo, Eclipse Papyrus, or a SysML v2 textual tool) is introduced into the workflow, the canonical `.sysml` source should be generated from this diagram and this Mermaid representation should be regenerated from the `.sysml` source as the rendered view.
 
 ## Block Definitions
 
