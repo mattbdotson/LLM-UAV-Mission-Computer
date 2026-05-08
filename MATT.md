@@ -424,6 +424,27 @@ When a mission completes, copy this template and fill it in:
 
 ## Mission Log
 
+## Mission Result 004 — Monaro Highway Road Following (Attempted)
+- Date: 2026-05-07
+- Simulation backend: ArduPlane SITL + JSBSim
+- VLM model: Gemma 4 E2B (Q4_K_M GGUF)
+- Inference backend: llama.cpp native CUDA, Jetson Orin Nano Super 8GB
+- Mission objective: Fly south along Monaro Highway to Lanyon Drive intersection, turn northeast along Lanyon Drive, return, RTL
+- Outcome: PARTIAL — Phase 1 (fly south) executed correctly, Phase 2 transition (recognize Lanyon Drive intersection) failed
+
+What happened:
+- Model correctly flew south along the Monaro Highway
+- Model correctly identified it was approaching the bottom of the map
+- Model could not reliably identify the Lanyon Drive intersection visually
+- Model entered an orbit near the intersection area, repeatedly issuing waypoints in a small region
+- STUCK state fired correctly and transitioned as designed
+- Mission was manually terminated
+
+Root cause:
+Visual landmark identification at intersection level exceeds Gemma 4 E2B's reliable capability. The model understands the mission structure and phase logic correctly but cannot determine "I am now at the Lanyon Drive intersection" from the map image.
+
+---
+
 ## Mission Result 003 — Free-Form Box Pattern
 - Date: 2026-05-07
 - Simulation backend: ArduPlane SITL + JSBSim
@@ -516,6 +537,12 @@ Next steps:
 
 8. **Gemma 4 has native JSON/function calling support.** Higher confidence for structured output than moondream or generic instruction-tuned models. *(Noted: May 2026.)*
 
+11. **Gemma 4 E2B cannot reliably identify named road intersections from map imagery.** It can navigate toward general areas but cannot confirm arrival at a specific landmark. This is a fundamental limitation of a 2B parameter model on fine-grained visual tasks. *(Discovered: May 2026.)*
+
+12. **There is a clear capability boundary between coordinate-based reasoning (reliable) and visual landmark identification (unreliable) for Gemma 4 E2B.** Missions should be designed to exploit coordinate reasoning rather than landmark recognition until a larger model is available. *(Discovered: May 2026.)*
+
+13. **The STUCK state works as designed — it correctly detected the orbit and fired a reassessment prompt. However reassessment cannot fix a fundamental visual recognition failure.** STUCK is a useful safety mechanism but not a solution to model capability limits. *(Discovered: May 2026.)*
+
 ---
 
 # Chapter 8: Safety & Risk
@@ -536,6 +563,7 @@ None of these have physical consequences. This is the right phase to take risks 
 | Risk | Likelihood | Severity | Mitigation |
 |---|---|---|---|
 | *(empty — populate before HIL)* | | | |
+| VLM fails to identify mission landmark | High (at 2B scale) | Medium | Design missions using coordinate triggers not visual landmark arrival detection. Reserve landmark identification for larger models. |
 
 ## Pre-flight Checklist *(to be developed before real flight)*
 
@@ -574,6 +602,9 @@ The autopilot already has its own failsafe behaviour; the VLM layer's job is to 
 7. **What are the minimum safety requirements before real flight?** Chapter 8 needs to be substantially complete first.
 8. **How does decision quality degrade under adversarial conditions?** Weather, sensor noise, comms latency, obscured map regions.
 9. **Is there a meaningful difference between E2B and E4B for mission planning specifically?** Requires Orin NX hardware to test.
+10. **What is the minimum model size required for reliable visual landmark identification from OSM map tiles?** E4B? 7B? Larger?
+11. **Could fine-tuning Gemma 4 E2B on UAV map navigation tasks improve landmark identification without increasing model size?**
+12. **Would a two-stage approach work — use a classical computer vision model to identify landmarks and pass coordinates to the LLM for mission reasoning?**
 
 ---
 
