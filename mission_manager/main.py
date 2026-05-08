@@ -1,6 +1,7 @@
 import time
 import os
 import subprocess
+import sys
 import requests as req
 from dotenv import load_dotenv
 from core.telemetry import TelemetryListener
@@ -15,6 +16,17 @@ load_dotenv(os.path.join(os.path.dirname(__file__), 'config', '.env'))
 CONNECTION_STRING = "udp:localhost:14552"
 MISSION_OBJECTIVE = "Fly a complete box pattern, then RTL. Choose your own corner coordinates to form a reasonable box shape on the map. Remember which corners you have visited and complete all four corners before RTL."
 TOTAL_WAYPOINTS = 5
+
+def prevent_sleep():
+    if sys.platform.startswith('linux'):
+        try:
+            subprocess.Popen(['systemd-inhibit', '--what=sleep', '--who=LLM-UAV',
+                            '--why=Mission in progress', '--mode=block',
+                            'sleep', 'infinity'])
+            print("Sleep inhibited for mission duration")
+        except Exception as e:
+            print(f"Could not inhibit sleep: {e}")
+
 
 def cleanup_stale_sitl():
     print("Cleaning up any stale SITL processes...")
@@ -59,6 +71,7 @@ def wait_for_vila(host, port, timeout=120):
     return False
 
 def main():
+    prevent_sleep()
     print("Starting mission manager...")
 
     sitl_process = start_sitl()

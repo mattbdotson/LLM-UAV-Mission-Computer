@@ -424,6 +424,42 @@ When a mission completes, copy this template and fill it in:
 
 ## Mission Log
 
+## Mission Result 003 — Free-Form Box Pattern
+- Date: 2026-05-07
+- Simulation backend: ArduPlane SITL + JSBSim
+- VLM model: Gemma 4 E2B (Q4_K_M GGUF)
+- Inference backend: llama.cpp native CUDA, Jetson Orin Nano Super 8GB
+- Mission objective: Fly a complete box pattern (model chooses own coordinates), then RTL
+- Outcome: SUCCESS (mission logic perfect, RTL triggered by dev PC sleep on final call)
+
+Decision log:
+1. transit_started at (240,221): goto_pixel (100,100) — model chose first corner autonomously
+2. waypoint_reached at (107,106): goto_pixel (400,100) — correctly identified C2 as top-right
+3. waypoint_reached at (390,99): goto_pixel (400,300) — correctly identified C3 as bottom-right
+4. waypoint_reached at (399,290): goto_pixel (100,300) — correctly inferred C4 geometrically from C1-C3
+5. waypoint_reached at (109,299): RTL (backend connection error — dev PC went to sleep)
+
+Key observations:
+- Model autonomously chose a reasonable 300x200 pixel box: corners at (100,100), (400,100), (400,300), (100,300)
+- Correctly flew clockwise without being told the direction
+- Maintained corner memory perfectly across 4 decision points
+- Inferred the 4th corner geometrically from the first three — no explicit instruction needed
+- Mission logic was perfect — only infrastructure failed (PC sleep)
+- Thinking chains showed the model explicitly tracking visited vs unvisited corners
+
+What this proves:
+- Gemma 4 E2B can autonomously plan and execute multi-waypoint geometric patterns
+- Mission context memory is working correctly across multiple LLM calls
+- The model can do geometric reasoning (inferring missing corners)
+- Infrastructure reliability needs improvement (sleep inhibition, connection retry)
+
+Next steps:
+- Test with a more complex pattern (figure-8, expanding square search)
+- Test visual landmark identification now that geometric reasoning is proven
+- Add connection retry logic to backend
+
+---
+
 ## Mission Result 002 — Boundary Pattern Navigation
 - Date: 2026-05-07
 - Simulation backend: ArduPlane SITL + JSBSim

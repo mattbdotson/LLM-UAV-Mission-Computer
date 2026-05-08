@@ -1,4 +1,5 @@
 import requests
+import time
 from typing import Optional
 from backends.base import InferenceBackend
 
@@ -46,11 +47,20 @@ class LlamaCppBackend(InferenceBackend):
         }
 
         print(f"[LlamaCpp] Sending request — image included: {has_image}, image size: {len(image_b64) if has_image else 0} bytes")
-        response = requests.post(
-            f"{self.url}/chat/completions",
-            json=payload,
-            timeout=120
-        )
+        for attempt in range(2):
+            try:
+                response = requests.post(
+                    f"{self.url}/chat/completions",
+                    json=payload,
+                    timeout=120
+                )
+                break
+            except requests.exceptions.ConnectionError as e:
+                if attempt == 0:
+                    print(f"[LlamaCpp] Connection error, retrying in 5s: {e}")
+                    time.sleep(5)
+                else:
+                    raise
         message = response.json()["choices"][0]["message"]
         reasoning = message.get("reasoning_content")
         if reasoning:
