@@ -13,7 +13,7 @@ from core.event_monitor import EventMonitor
 load_dotenv(os.path.join(os.path.dirname(__file__), 'config', '.env'))
 
 CONNECTION_STRING = "udp:localhost:14552"
-MISSION_OBJECTIVE = "Fly north until you are within 20 pixels of the north edge of the map (y <= 20), then fly east until you are within 20 pixels of the east edge of the map (x >= 492), then RTL."
+MISSION_OBJECTIVE = "Fly a complete box pattern, then RTL. Choose your own corner coordinates to form a reasonable box shape on the map. Remember which corners you have visited and complete all four corners before RTL."
 TOTAL_WAYPOINTS = 5
 
 def cleanup_stale_sitl():

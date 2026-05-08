@@ -2,5 +2,4 @@ Mission: {objective}
 Current position: ({pixel_x}, {pixel_y})
 Aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
-The aircraft has reached cruise altitude and is ready to begin the mission.
-Look at the map. Issue your first goto_pixel command to begin.
+The aircraft has reached cruise altitude. Plan a box pattern using four corner pixel coordinates of your choice. Choose corners that form a reasonable box shape on the map. Issue your first goto_pixel command to fly to the first corner.

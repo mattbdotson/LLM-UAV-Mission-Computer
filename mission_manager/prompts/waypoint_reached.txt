@@ -5,16 +5,8 @@ Aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 Previous decisions:
 {decisions_summary}
 
-A waypoint was just reached. Look at your current position ({pixel_x}, {pixel_y}) and the mission objective.
-
-Mission phases:
-Phase 1 complete when: y <= 20
-Phase 2 complete when: x >= 492
-Phase 3: RTL
-
-Determine which phase you are in:
-- If y > 20: Phase 1 not complete. Command goto_pixel with y=10 to fly north.
-- If y <= 20 and x < 492: Phase 1 complete, Phase 2 not complete. Command goto_pixel with x=502 to fly east.
-- If y <= 20 and x >= 492: Both phases complete. Command rtl.
+A waypoint was just reached. Review your previous decisions to determine which corners of your box pattern you have already visited. Decide what to do next:
+- If you have not yet visited all four corners: command goto_pixel to fly to the next corner
+- If you have visited all four corners: command rtl
 
 What is your decision?
