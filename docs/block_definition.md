@@ -125,15 +125,22 @@ flowchart LR
         end
     end
 
-    subgraph PR["Penny Royal (Jetson Orin Nano Super 8GB)"]
-        Llama["llama-server<br/>(Gemma 4 E2B + mmproj)"]
+    subgraph PR["Penny Royal (Jetson Orin Nano Super)"]
+        SoC["Jetson Orin SoC<br/>6-core Arm A78AE + Ampere GPU (1024 CUDA)<br/>8GB unified LPDDR5"]
+        Storage["Storage<br/>64GB microSD<br/>(NVMe SSD planned — Crucial P3 500GB)"]
+        NIC["Gigabit Ethernet"]
+        Llama["llama-server<br/>(Gemma 4 E2B + mmproj, CUDA)"]
+        SoC --- Storage
+        SoC --- NIC
+        SoC -.hosts.-> Llama
     end
 
-    MM <-->|"HTTP :8080 — Ethernet/LAN"| Llama
+    MM <-->|"HTTP :8080 — Ethernet/LAN"| NIC
 ```
 
 **Notes:**
 - Dev PC and Penny Royal are physically separate machines on the same Ethernet/LAN segment. Penny Royal is reachable at `192.168.1.177`.
+- Penny Royal runs JetPack 6.2.2 (L4T 36.5). `llama-server` is built natively with `GGML_CUDA=ON` and runs on the Ampere GPU using the unified LPDDR5 memory pool — there is no discrete VRAM.
 - The autopilot is a virtualized ArduPlane SITL process inside WSL2 — there is no physical autopilot, RC link, or airframe in this phase.
 - The MAVLink interface is loopback-style inside WSL2 (UDP `localhost:14552`); only the HTTP inference link crosses the physical LAN.
 - This diagram must be updated before HIL or real-flight testing — the Mission Manager moves onto the airframe, the autopilot becomes physical hardware, and a radio link replaces the loopback MAVLink UDP socket.
