@@ -65,6 +65,8 @@ def main():
 
     telemetry = TelemetryListener(CONNECTION_STRING)
     planner = Planner(stub=False)
+    if hasattr(planner.backend, 'clear_cache'):
+        planner.backend.clear_cache()
     executor = Executor(telemetry.connection)
 
     backend = os.getenv('INFERENCE_BACKEND', 'vila').lower()

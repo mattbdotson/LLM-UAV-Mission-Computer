@@ -41,7 +41,8 @@ class LlamaCppBackend(InferenceBackend):
             "model": "gemma4-e2b",
             "messages": messages,
             "max_tokens": 2048,
-            "temperature": 0.1
+            "temperature": 0.1,
+            "cache_prompt": False
         }
 
         print(f"[LlamaCpp] Sending request — image included: {has_image}, image size: {len(image_b64) if has_image else 0} bytes")
@@ -55,6 +56,13 @@ class LlamaCppBackend(InferenceBackend):
         if reasoning:
             print(f"[THINKING] {reasoning}")
         return message["content"]
+
+    def clear_cache(self):
+        try:
+            r = requests.post(f"http://{self.host}:{self.port}/cache/clear", timeout=5)
+            print(f"[LlamaCpp] Cache cleared: {r.status_code}")
+        except Exception as e:
+            print(f"[LlamaCpp] Cache clear not available: {e}")
 
     def health_check(self) -> bool:
         try:
