@@ -41,10 +41,9 @@ class LlamaCppBackend(InferenceBackend):
         payload = {
             "model": "gemma4-e2b",
             "messages": messages,
-            "max_tokens": 512,
+            "max_tokens": 3000,
             "temperature": 0.1,
-            "cache_prompt": False,
-            "chat_template_kwargs": {"enable_thinking": False}
+            "cache_prompt": False
         }
 
         print(f"[LlamaCpp] Sending request — image included: {has_image}, image size: {len(image_b64) if has_image else 0} bytes")
@@ -62,7 +61,15 @@ class LlamaCppBackend(InferenceBackend):
                     time.sleep(5)
                 else:
                     raise
-        return response.json()["choices"][0]["message"]["content"]
+        message = response.json()["choices"][0]["message"]
+        reasoning = message.get("reasoning_content") or ""
+        content = message.get("content") or ""
+        if reasoning:
+            print(f"[THINKING] {reasoning}")
+        if not content and reasoning:
+            print("[LlamaCpp] WARNING: model produced reasoning but no content — likely ran out of tokens before emitting JSON. Falling back to RTL.")
+            return ""
+        return content
 
     def clear_cache(self):
         try:

@@ -195,6 +195,8 @@ class Planner:
             pixel_y=state.get('pixel_y', 0),
             start_pixel_x=context.start_pixel_x if context.start_pixel_x is not None else state.get('pixel_x', 0),
             start_pixel_y=context.start_pixel_y if context.start_pixel_y is not None else state.get('pixel_y', 0),
+            start_x=context.start_pixel_x if context.start_pixel_x is not None else 0,
+            start_y=context.start_pixel_y if context.start_pixel_y is not None else 0,
         )
         prompt_filename = os.path.join(self.mission_dir, f"{event}_{int(time.time())}_user_prompt.txt")
         with open(prompt_filename, 'w') as f:
