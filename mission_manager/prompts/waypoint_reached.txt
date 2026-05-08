@@ -1,9 +1,9 @@
-Mission objective: {objective}
-Your current pixel position: ({pixel_x}, {pixel_y})
-Current aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
+Mission: {objective}
+Current position: ({pixel_x}, {pixel_y})
+Aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
-Look at the map image. Find the oval horse racing track on the right side of the map.
-- If the blue arrow is over or near the oval track: command rtl
-- If the blue arrow has not yet reached the oval track: command goto_pixel pointing toward it
+Previous decisions:
+{decisions_summary}
 
-What is your decision?
+A waypoint was just reached. Look at your current position ({pixel_x}, {pixel_y}) and the mission objective.
+Determine what to do next and issue the appropriate command.

@@ -1,13 +1,6 @@
-Mission objective: {objective}
-Current state: {state}
-Event: Aircraft has reached cruise altitude and is beginning its mission.
-Your current pixel position on the map: ({pixel_x}, {pixel_y})
+Mission: {objective}
+Current position: ({pixel_x}, {pixel_y})
+Aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
-Mission history:
-{decisions_summary}
-
-Available commands: goto_pixel, rtl
-
-Current aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
-
-Look at the map image. There is a distinctive oval horse racing track visible on the right side of the map. Fly toward it.
+The aircraft has reached cruise altitude and is ready to begin the mission.
+Look at the map. Issue your first goto_pixel command to begin.
