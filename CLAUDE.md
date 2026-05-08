@@ -98,7 +98,7 @@ LLAMACPP_PORT=8080
 
 ## Map System
 - Base tile: OpenStreetMap, 8km × 8km centered on SITL default location (Canberra, Australia)
-- Tile size: 2304×2304px, resized to 384×384 for VLM input
+- Tile size: 2304×2304px, resized to 512×512 for VLM input
 - Map bounds: lat -35.407 to -35.326, lon 149.117 to 149.216
 - SITL default position: lat -35.3632, lon 149.1652 (Jerrabomberra area, Canberra)
 - Mission target: lat -35.363261, lon 149.165230 (near highway junction)
@@ -140,17 +140,38 @@ Running Llama 3.2 1B/3B against orbit and figure-8 missions revealed:
 - The pixel coordinate approach directly addresses this limitation
 - Reasoning field is valuable for debugging — shows what the model was thinking
 
+## Current Status
+- ✅ llama.cpp native CUDA build running on Penny Royal (Jetson Orin Nano Super 8GB)
+- ✅ Gemma 4 E2B with vision projector deployed and serving on port 8080
+- ✅ Event-driven state machine architecture implemented and tested
+- ✅ Mission 001 completed (highway junction, partial success)
+- ✅ Mission 002 completed (boundary pattern, full success — perfect 4/4 decisions)
+- ✅ Event-driven planning loop working correctly (LLM called only at decision points)
+- ✅ Debug map images saved per run in `mission_manager/debug/maps/<run_id>/`
+
+## Proven Capabilities
+- Gemma 4 E2B correctly understands the pixel coordinate system (x=0 west, y=0 north)
+- Multi-phase conditional mission logic works reliably
+- State machine fires LLM only at decision points (not time-driven)
+- Mission context memory correctly accumulates across decisions
+- Image is being sent and received correctly by llama-server
+
 ## Upgrade Path
 1. ✅ SITL + mission manager pipeline
 2. ✅ Pluggable backend abstraction
 3. ✅ Map compositor + pixel command schema
 4. ❌ Deploy VILA on Jetson — abandoned, replaced by llama.cpp + Gemma 4 E2B
-5. ⬜ Build llama.cpp with CUDA on Penny Royal (in progress)
-6. ⬜ Download Gemma 4 E2B GGUF and vision projector
-7. ⬜ Test Gemma 4 E2B vision inference with map image
-8. ⬜ First VLM vision mission test
-9. ⬜ TensorRT backend implementation
-10. ⬜ Real autopilot hardware (HIL upgrade)
+5. ✅ Build llama.cpp with CUDA on Penny Royal
+6. ✅ Download Gemma 4 E2B GGUF and vision projector
+7. ✅ Test Gemma 4 E2B vision inference with map image
+8. ✅ First VLM vision mission test (Mission 001 — highway junction)
+9. ✅ Event-driven state machine + mission context memory
+10. ✅ Boundary pattern mission (Mission 002 — full success)
+11. ⬜ Visual landmark identification mission (racecourse, highway junction)
+12. ⬜ More complex patterns (figure-8, expanding square)
+13. ⬜ Simulated anomaly detection (off-course, wind correction)
+14. ⬜ TensorRT backend implementation
+15. ⬜ Real autopilot hardware (HIL upgrade)
 
 ## Development Commands
 ```bash
