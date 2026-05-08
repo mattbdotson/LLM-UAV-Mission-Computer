@@ -5,14 +5,12 @@ Aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 Previous decisions:
 {decisions_summary}
 
-The Monaro Highway runs north-south at approximately x=256.
+The Monaro Highway runs north-south through the center of the map.
 
-Phase rules based on current position ({pixel_x}, {pixel_y}):
-- Phase 1 (fly south): not yet reached bottom edge (y < 490)
-- Phase 1 complete: y >= 490
-- Phase 2 (fly north): not yet reached top edge (y > 20)
-- Phase 2 complete: y <= 20
-- Phase 3 (return to start): not yet reached starting position (y < 190)
-- Phase 3 complete: y >= 190 — command rtl
+Phase rules:
+- Phase 1: Fly south along the Monaro Highway until you reach the southern edge of the map
+- Phase 2: Fly north along the Monaro Highway until you reach the northern edge of the map
+- Phase 3: Return south along the Monaro Highway to approximately where you started
+- Phase 3 complete: Command rtl
 
-Determine which phase you are in and issue the appropriate goto_pixel command to make progress, or rtl if Phase 3 is complete.
+Your starting position was approximately ({pixel_x}, {pixel_y}) at mission start. Review your previous decisions to determine which phase you are in. Issue the appropriate command.
