@@ -7,12 +7,17 @@ Previous decisions:
 
 The Monaro Highway runs north-south through the center of the map.
 
+A fixed-wing aircraft cannot land on an exact pixel — it has turning radius and overshoot. A phase is COMPLETE when the aircraft is APPROXIMATELY at the target, within roughly 30 pixels. Do not keep retrying to hit an exact edge coordinate. As soon as you are close enough, advance to the next phase.
+
 Mission phases in order:
-- Phase 1: Fly east to the eastern edge of the map
-- Phase 2: Fly west until you reach the Monaro Highway
-- Phase 3: Fly south along the Monaro Highway to the southern edge of the map
-- Phase 4: Fly north along the Monaro Highway to the northern edge of the map
-- Phase 5: Return south to approximately where you started
+- Phase 1: Fly east — complete when x is within ~30 px of the eastern edge (x >= 480)
+- Phase 2: Fly west until you reach the Monaro Highway — complete when x is within ~30 px of the highway centerline (x ≈ 256, i.e. 226 <= x <= 286)
+- Phase 3: Fly south along the Monaro Highway — complete when y is within ~30 px of the southern edge (y >= 480)
+- Phase 4: Fly north along the Monaro Highway — complete when y is within ~30 px of the northern edge (y <= 30)
+- Phase 5: Return south along the Monaro Highway to approximately your starting position ({start_pixel_x}, {start_pixel_y}) — complete when within ~30 px of start
 - Phase 6: RTL
 
-Review your current position and previous decisions to determine which phase you are in. Issue the appropriate goto_pixel command to make progress, or rtl when Phase 5 is complete (i.e., Phase 6).
+Review your current position and previous decisions to determine which phase you are in.
+- If the current phase is not yet complete, issue a goto_pixel toward the next phase target. Do NOT repeat a waypoint you have already commanded — pick a fresh point further along the phase.
+- If the current phase IS complete (within tolerance), advance to the next phase and issue the first goto_pixel of that phase.
+- If Phase 5 is complete, command rtl (Phase 6).
