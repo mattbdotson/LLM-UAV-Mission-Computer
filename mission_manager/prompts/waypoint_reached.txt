@@ -13,4 +13,4 @@ Phase rules:
 - Phase 3: Return south along the Monaro Highway to approximately where you started
 - Phase 3 complete: Command rtl
 
-Your starting position was approximately ({pixel_x}, {pixel_y}) at mission start. Review your previous decisions to determine which phase you are in. Issue the appropriate command.
+Your starting position was approximately ({start_pixel_x}, {start_pixel_y}) at mission start. Review your previous decisions to determine which phase you are in. Issue the appropriate command.

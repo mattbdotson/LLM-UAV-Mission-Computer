@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Dict
+from typing import List, Dict, Optional
 import time
 
 
@@ -22,9 +22,16 @@ class MissionContext:
     current_state: str = "PREFLIGHT"
     stuck_count: int = 0
     start_time: float = field(default_factory=time.time)
+    start_pixel_x: Optional[int] = None
+    start_pixel_y: Optional[int] = None
 
     def record_stuck(self):
         self.stuck_count += 1
+
+    def set_start_pixel(self, x, y):
+        if self.start_pixel_x is None and self.start_pixel_y is None:
+            self.start_pixel_x = x
+            self.start_pixel_y = y
 
     def add_waypoint_visit(self, seq, lat, lon, decision, reasoning):
         self.waypoints_visited.append(WaypointVisit(

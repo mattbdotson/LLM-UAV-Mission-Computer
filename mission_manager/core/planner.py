@@ -111,6 +111,9 @@ class Planner:
             state["pixel_x"] = int(full_x * vlm_w / self.compositor.w)
             state["pixel_y"] = int(full_y * vlm_h / self.compositor.h)
             print(f"[Planner] Aircraft pixel position: ({state['pixel_x']}, {state['pixel_y']})")
+            context.set_start_pixel(state["pixel_x"], state["pixel_y"])
+            if context.start_pixel_x is not None:
+                print(f"[Planner] Mission start pixel: ({context.start_pixel_x}, {context.start_pixel_y})")
 
         user_prompt = self._load_event_prompt(event, state, context, event_data)
 
@@ -190,6 +193,8 @@ class Planner:
             total_waypoints=context.total_waypoints,
             pixel_x=state.get('pixel_x', 0),
             pixel_y=state.get('pixel_y', 0),
+            start_pixel_x=context.start_pixel_x if context.start_pixel_x is not None else state.get('pixel_x', 0),
+            start_pixel_y=context.start_pixel_y if context.start_pixel_y is not None else state.get('pixel_y', 0),
         )
         prompt_filename = os.path.join(self.mission_dir, f"{event}_{int(time.time())}_user_prompt.txt")
         with open(prompt_filename, 'w') as f:
