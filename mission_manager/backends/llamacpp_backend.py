@@ -13,25 +13,38 @@ class LlamaCppBackend(InferenceBackend):
                  system_prompt: str,
                  user_prompt: str,
                  image_b64: Optional[str] = None) -> str:
-        if image_b64:
-            user_content = [
-                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_b64}"}},
-                {"type": "text", "text": user_prompt}
+        has_image = image_b64 is not None and len(image_b64) > 0
+
+        if has_image:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": [
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_b64}"
+                        }
+                    },
+                    {
+                        "type": "text",
+                        "text": user_prompt
+                    }
+                ]}
             ]
         else:
-            user_content = user_prompt
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ]
 
         payload = {
             "model": "gemma4-e2b",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content}
-            ],
+            "messages": messages,
             "max_tokens": 2048,
             "temperature": 0.1
         }
 
-        print(f"[LlamaCpp] Request payload — image included: {'image_url' in str(payload)[:200]}")
+        print(f"[LlamaCpp] Sending request — image included: {has_image}, image size: {len(image_b64) if has_image else 0} bytes")
         response = requests.post(
             f"{self.url}/chat/completions",
             json=payload,
