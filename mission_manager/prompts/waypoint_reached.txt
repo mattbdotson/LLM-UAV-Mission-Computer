@@ -5,8 +5,14 @@ Aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 Previous decisions:
 {decisions_summary}
 
-A waypoint was just reached. Review your previous decisions to determine which corners of your box pattern you have already visited. Decide what to do next:
-- If you have not yet visited all four corners: command goto_pixel to fly to the next corner
-- If you have visited all four corners: command rtl
+Road reference:
+- Monaro Highway: prominent wide road with red centreline running north-south through center of map
+- Lanyon Drive: road branching northeast from the Monaro Highway in the southern portion of the map
 
-What is your decision?
+Mission phases:
+- Phase 1: Fly south along Monaro Highway until you reach the Lanyon Drive intersection (bottom portion of map)
+- Phase 2: Turn northeast and follow Lanyon Drive to the eastern edge of the map
+- Phase 3: Return southwest along Lanyon Drive back to the Monaro Highway intersection
+- Phase 4: Fly north along Monaro Highway and RTL when close to starting position
+
+Based on your current position ({pixel_x}, {pixel_y}) and previous decisions, which phase are you in and what is your next command?

@@ -2,4 +2,7 @@ Mission: {objective}
 Current position: ({pixel_x}, {pixel_y})
 Aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
-The aircraft has reached cruise altitude. Plan a box pattern using four corner pixel coordinates of your choice. Choose corners that form a reasonable box shape on the map. Issue your first goto_pixel command to fly to the first corner.
+The Monaro Highway is the prominent wide road with a red centreline running north-south through the center of the map.
+Lanyon Drive is the road that branches northeast from the Monaro Highway in the southern portion of the map.
+
+Issue your first goto_pixel command to begin flying south along the Monaro Highway.
