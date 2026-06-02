@@ -1,16 +1,13 @@
 Mission: {objective}
-YOUR CURRENT POSITION RIGHT NOW: ({pixel_x}, {pixel_y})
-Aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
-Mission started at approximately: ({start_x}, {start_y})
 
-The Monaro Highway runs north-south through the center of the map.
+YOUR CURRENT POSITION on the map: ({pixel_x}, {pixel_y})
+Aircraft state: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
-Mission phases in order:
-- Phase 1: Fly east to approximately the eastern edge of the map
-- Phase 2: Fly west until you approximately reach the Monaro Highway
-- Phase 3: Fly south along the Monaro Highway to approximately the southern edge
-- Phase 4: Fly north along the Monaro Highway to approximately the northern edge
-- Phase 5: Return south to approximately where you started
-- Phase 6: RTL
+Mission phases (in order):
+- Phase 1: Fly to the eastern edge of the map
+- Phase 2: Fly west until you are over the prominent road that runs north-south through the area
+- Phase 3: Fly south along that road until you reach the southern edge
+- Phase 4: Fly north along that road until you reach the northern edge
+- Phase 5: Return to the area where you began the mission
 
-Use YOUR CURRENT POSITION ({pixel_x}, {pixel_y}) — not positions from history — to determine which phase you are in. Issue the appropriate command.
+Look at the map. Determine which phase you are in by what you see around your current position, not by the coordinates in the mission text. Then choose your next destination by identifying the visual target in the map and reading off its pixel coordinates.
