@@ -1,3 +1,4 @@
+import re
 import requests
 import time
 from typing import Optional
@@ -69,6 +70,9 @@ class LlamaCppBackend(InferenceBackend):
         if not content and reasoning:
             print("[LlamaCpp] WARNING: model produced reasoning but no content — likely ran out of tokens before emitting JSON. Falling back to RTL.")
             return ""
+        match = re.search(r'\{.*\}', content, re.DOTALL)
+        if match:
+            return match.group(0)
         return content
 
     def clear_cache(self):
