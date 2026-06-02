@@ -12,6 +12,7 @@
 | inference_setup.md | Native llama.cpp build and launch instructions for Pennyroyal |
 | troubleshooting.md | Known failure modes and fixes |
 | prompt_design.md | Prompt design principles and visual grounding strategy |
+| results.md | Mission run records and observed failure modes |
 
 The systems engineering documents (requirements, block definitions, ICD, state machine) describe the system as designed for SITL simulation and must be updated before any HIL or real flight testing.
 
