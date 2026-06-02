@@ -8,7 +8,7 @@ class EventMonitor:
         self.last_mode = None
         self.last_alt = 0
         self.last_waypoint_time = time.time()
-        self.no_progress_timeout = 180  # seconds
+        self.no_progress_timeout = 600  # seconds
         self.no_progress_fired = False
 
     def check(self, messages):
