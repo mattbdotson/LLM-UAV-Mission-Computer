@@ -2,7 +2,7 @@ Mission: {objective}
 Current position: ({pixel_x}, {pixel_y})
 Aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
-Previous decisions:
+{scratchpad}Previous decisions:
 {decisions_summary}
 
 WARNING: The aircraft has been orbiting without progress for over 60 seconds. You are now in STUCK state.

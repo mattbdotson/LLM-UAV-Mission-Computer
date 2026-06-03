@@ -2,4 +2,4 @@ Mission: {objective}
 YOUR CURRENT POSITION RIGHT NOW: ({pixel_x}, {pixel_y})
 Aircraft: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
-Look at the map. Issue your first goto_pixel command to begin the mission by flying east toward the eastern edge of the map.
+{scratchpad}Look at the map. Issue your first goto_pixel command to begin the mission by flying east toward the eastern edge of the map.

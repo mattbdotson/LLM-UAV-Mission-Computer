@@ -13,6 +13,7 @@
 | troubleshooting.md | Known failure modes and fixes |
 | prompt_design.md | Prompt design principles and visual grounding strategy |
 | results.md | Mission run records and observed failure modes |
+| scratchpad.md | Model-authored scratchpad — design, philosophy, and schema |
 
 The systems engineering documents (requirements, block definitions, ICD, state machine) describe the system as designed for SITL simulation and must be updated before any HIL or real flight testing.
 

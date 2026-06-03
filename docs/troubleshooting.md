@@ -79,6 +79,16 @@ terminate called after throwing an instance of 'std::runtime_error'
 
 ---
 
+## Model writes empty or contradictory scratchpad notes
+
+**Symptom**: `decisions.jsonl` shows `progress` or `next_intent` as null across multiple decisions, or the notes contradict the aircraft's actual position visible in the debug maps.
+
+**Context**: This is expected behaviour. The system does not filter, validate, or correct the scratchpad — it stores and surfaces whatever the model writes, verbatim. A 2B edge model will sometimes write empty notes, repeat previous notes unchanged, or describe a phase that doesn't match its current map position. These are all observable in the `decisions.jsonl` log alongside the corresponding debug map images.
+
+**What to do**: Treat contradictory notes as a data point, not a bug. Cross-reference each decision's `progress` / `next_intent` text against the corresponding debug map (saved in `debug/maps/<run_id>/`) to characterise how often the model's self-reported state is accurate. This is the measurement the scratchpad mechanism is designed to support. See [scratchpad.md](scratchpad.md) for design intent.
+
+---
+
 ## Model regresses to Phase 1 after `no_progress` / STUCK fires
 
 **Symptom**: After the `stuck` prompt fires, the model issues a Phase 1 waypoint even though earlier phases are complete. Progress is lost.

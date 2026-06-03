@@ -94,6 +94,9 @@ class Planner:
         if self.stub:
             return self._stub_response(state)
 
+        if context.decisions_log_path is None:
+            context.decisions_log_path = os.path.join(self.mission_dir, 'decisions.jsonl')
+
         print(f"[Planner] Composing map image for event: {event}")
         image_b64 = self.compositor.compose(state, MISSION_TARGET)
         if image_b64 is None:
@@ -129,6 +132,12 @@ class Planner:
             print(f"[{self.backend.get_name()}] raw response: {raw}")
             command = json.loads(raw)
             print(f"Planner decision: {json.dumps(command, indent=2)}")
+            progress = (command.get("progress") or "").strip()
+            next_intent = (command.get("next_intent") or "").strip()
+            if progress:
+                context.last_progress = progress
+            if next_intent:
+                context.last_next_intent = next_intent
             return command
         except json.JSONDecodeError as e:
             print(f"JSON parse error: {e} — falling back to RTL")
@@ -180,6 +189,15 @@ class Planner:
         except FileNotFoundError:
             template = "Current state: {state}\nEvent: {event}\nWhat should the aircraft do next?"
 
+        if context.last_progress is not None:
+            scratchpad = (
+                f'Your notes from your last decision:\n'
+                f'progress: "{context.last_progress}"\n'
+                f'next_intent: "{context.last_next_intent or ""}"\n\n'
+            )
+        else:
+            scratchpad = ""
+
         formatted_prompt = template.format(
             objective=context.objective,
             state=context.current_state,
@@ -197,6 +215,7 @@ class Planner:
             start_pixel_y=context.start_pixel_y if context.start_pixel_y is not None else state.get('pixel_y', 0),
             start_x=context.start_pixel_x if context.start_pixel_x is not None else 0,
             start_y=context.start_pixel_y if context.start_pixel_y is not None else 0,
+            scratchpad=scratchpad,
         )
         prompt_filename = os.path.join(self.mission_dir, f"{event}_{int(time.time())}_user_prompt.txt")
         with open(prompt_filename, 'w') as f:

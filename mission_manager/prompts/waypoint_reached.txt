@@ -3,7 +3,7 @@ Mission: {objective}
 YOUR CURRENT POSITION on the map: ({pixel_x}, {pixel_y})
 Aircraft state: alt={alt}m, heading={heading}°, airspeed={airspeed}m/s
 
-Mission phases (in order):
+{scratchpad}Mission phases (in order):
 - Phase 1: Fly to the eastern edge of the map
 - Phase 2: Fly west until you are over the prominent road that runs north-south through the area
 - Phase 3: Fly south along that road until you reach the southern edge

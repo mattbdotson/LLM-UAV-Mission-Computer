@@ -11,3 +11,5 @@ Output a single JSON object with this schema:
 {"command": "goto_pixel", "reasoning": "<your reasoning>", "params": {"x": <int>, "y": <int>}}
 
 Valid commands: goto_pixel, rtl, loiter.
+
+You may record short notes in the `progress` and `next_intent` fields of your response. These notes will be shown back to you in your next decision so you can maintain continuity across decisions. Use them to record what you believe you have accomplished and what you are currently doing.

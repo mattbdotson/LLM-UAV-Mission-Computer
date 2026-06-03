@@ -90,7 +90,9 @@ class StateMachine:
             state=self.state.value,
             command=command.get("command"),
             reasoning=command.get("reasoning", ""),
-            params=command.get("params", {})
+            params=command.get("params", {}),
+            progress=command.get("progress"),
+            next_intent=command.get("next_intent"),
         )
 
         self.context.add_waypoint_visit(

@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
+import json
 import time
 
 
@@ -24,6 +25,9 @@ class MissionContext:
     start_time: float = field(default_factory=time.time)
     start_pixel_x: Optional[int] = None
     start_pixel_y: Optional[int] = None
+    last_progress: Optional[str] = None
+    last_next_intent: Optional[str] = None
+    decisions_log_path: Optional[str] = None
 
     def record_stuck(self):
         self.stuck_count += 1
@@ -43,15 +47,21 @@ class MissionContext:
             reasoning=reasoning
         ))
 
-    def add_decision(self, trigger, state, command, reasoning, params=None):
-        self.decisions.append({
+    def add_decision(self, trigger, state, command, reasoning, params=None, progress=None, next_intent=None):
+        entry = {
             "trigger": trigger,
             "state": state,
             "command": command,
             "reasoning": reasoning,
             "params": params or {},
-            "timestamp": time.time()
-        })
+            "timestamp": time.time(),
+            "progress": progress,
+            "next_intent": next_intent,
+        }
+        self.decisions.append(entry)
+        if self.decisions_log_path:
+            with open(self.decisions_log_path, 'a') as f:
+                f.write(json.dumps(entry) + '\n')
 
     def decisions_summary(self):
         if not self.decisions:
