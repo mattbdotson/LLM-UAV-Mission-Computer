@@ -2,8 +2,11 @@
 
 ## Documents
 
+The V1.0 documentation set is frozen as of git tag `v1.0`. Retrieve any V1.0 document as it was at the freeze with `git show v1.0:docs/<file>`.
+
 | Document | Description |
 |---|---|
+| architecture_baseline.md | LLM-UAV-Mission-Computer V1.0 — frozen as-built baseline |
 | system_requirements.md | System-level requirements (SHALLs) |
 | block_definition.md | SysML-style block definitions and responsibilities |
 | interface_control.md | Interface control document — data flows between blocks |

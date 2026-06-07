@@ -18,13 +18,13 @@ The core research question is: **what can a small edge VLM do as an autonomous m
 ## Architecture
 Dev PC (WSL2)                          Penny Royal (Jetson Orin Nano)
 ─────────────────────                  ──────────────────────────────
-JSBSim (flight physics)                VLM Inference Server
-↕                                (llama.cpp + Gemma 4 E2B)
-ArduPlane SITL        ←── MAVLink ──►       ↕ HTTP
-(full autopilot                        Mission Manager
-firmware as process)                  ├── Telemetry Listener
-├── Planner (calls VLM)
-└── Executor (MAVLink cmds)
+ArduPlane SITL (-f plane,              VLM Inference Server
+ built-in FDM)        ←── MAVLink ──►  (llama.cpp + Gemma 4 E2B)
++ MAVProxy                                    ↕ HTTP
+                                       Mission Manager (dev PC)
+                                      ├── Telemetry Listener
+                                      ├── Planner (calls VLM)
+                                      └── Executor (MAVLink cmds)
 
 ### Key Design Decisions
 - **LLM at mission layer only** — autopilot retains full control loop authority. VLM only issues high-level waypoint/mode commands via MAVLink
@@ -87,7 +87,7 @@ The VLM outputs one of these JSON commands each planning cycle:
 The `reasoning` field is logged for every decision — this is critical for understanding and debugging VLM behavior.
 
 ## Backend Configuration (.env)
-INFERENCE_BACKEND=llamacpp    # ollama | vila | tensorrt | llamacpp
+INFERENCE_BACKEND=llamacpp    # active backend; code default is 'vila' (must override in deployment)
 OLLAMA_HOST=192.168.1.177
 OLLAMA_PORT=11434
 OLLAMA_MODEL=moondream
@@ -108,7 +108,7 @@ LLAMACPP_PORT=8080
 - Aircraft drawn as blue arrow showing heading, trail as blue line, target as red crosshair
 
 ## Simulation Stack
-- **JSBSim**: flight dynamics model (fixed-wing physics)
+- **FDM**: ArduPlane built-in plane model (`-f plane`); JSBSim is not used in this deployment
 - **ArduPlane SITL**: full ArduPilot firmware compiled as Linux binary
 - **MAVProxy**: ground control station, exposes MAVLink on UDP port 14552
 - SITL launches automatically from `main.py` via subprocess
