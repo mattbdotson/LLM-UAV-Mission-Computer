@@ -11,6 +11,7 @@ class MissionState(Enum):
     LANDED = "LANDED"
 
 
+# mbase:implements BHV-mission-fsm
 class StateMachine:
     def __init__(self, mission_context, planner, executor, telemetry):
         self.state = MissionState.PREFLIGHT

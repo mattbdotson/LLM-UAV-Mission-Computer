@@ -1,0 +1,9 @@
+id: REQ-reasoning-logged
+kind: requirement
+name: Reasoning field logged on every VLM decision
+status: draft
+description: Every JSON command returned by the VLM shall include a non-empty `reasoning` field. The planner shall log this field verbatim to the decisions.jsonl audit trail on every planning cycle, along with the triggering event and the resulting command.
+derives_from: NEED-explainable-decisions
+verification_status: passing
+satisfied_by: CMP-planner
+verified_by: VER-reasoning-logged

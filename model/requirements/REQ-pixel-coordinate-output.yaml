@@ -1,0 +1,17 @@
+id: REQ-pixel-coordinate-output
+kind: requirement
+name: "VLM outputs pixel coordinates; executor owns GPS conversion"
+description: >
+  The VLM shall emit integer pixel coordinates (x, y) on a 512x512 map image
+  rather than GPS coordinates. The executor shall perform the pixel-to-GPS
+  conversion. No component upstream of the executor shall perform or require
+  GPS arithmetic.
+rationale: >
+  Small VLMs cannot reliably perform the floating-point coordinate arithmetic
+  needed for GPS waypoint computation. Expressing targets as pixel offsets on
+  the provided image keeps the VLM in image space where it is competent.
+verification_method: inspection
+priority: shall
+status: draft
+derives_from: [NEED-visual-grounding]
+fit_criterion: "The goto_pixel command schema carries (x, y) ints 0-511; Executor.execute calls pixel_to_gps before issuing any MAVLink waypoint."

@@ -1,0 +1,16 @@
+id: CMP-executor
+kind: component
+name: "Executor"
+description: >
+  Translates mission commands from the planner into MAVLink message sequences.
+  Owns pixel-to-GPS coordinate conversion (via MapCompositor) and enforces the
+  50 m altitude floor on goto_pixel and goto_waypoint. The loiter command
+  bypasses the floor and issues its own altitude directly.
+conformance_level: structural
+status: draft
+parent: CMP-mission-computer
+ports:
+  - {name: execution, direction: provided, interface: IFC-mavlink-cmd}
+satisfies:
+  - REQ-pixel-coordinate-output
+  - REQ-altitude-floor

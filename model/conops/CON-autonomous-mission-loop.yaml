@@ -1,0 +1,20 @@
+id: CON-autonomous-mission-loop
+kind: conops
+name: "Autonomous mission loop"
+description: >
+  A fixed-wing UAV is given a mission objective as natural-language text. An
+  edge Vision Language Model (VLM) running on the on-board mission computer
+  acts as the autonomy layer: at each decision point it receives a top-down
+  map image showing aircraft position and issues a pixel-coordinate navigation
+  command. The autopilot retains full control-loop authority; the VLM only
+  issues high-level waypoint commands via MAVLink.
+
+  The mission computer must be explainable (every decision logged with
+  reasoning), visually grounded (VLM reasons from the image, not from
+  pre-encoded coordinates), and safe (altitude floors, RTL fallback on any
+  failure, bounded state machine).
+status: draft
+elaborated_by:
+  - NEED-explainable-decisions
+  - NEED-visual-grounding
+  - NEED-safe-flight

@@ -1,0 +1,9 @@
+id: REQ-altitude-floor
+kind: requirement
+name: 50 m altitude floor on goto_pixel and goto_waypoint
+status: draft
+description: The executor shall enforce a minimum commanded altitude of 50 m AGL on every goto_pixel and goto_waypoint command, silently raising any lower value. The floor applies only in the executor; loiter commands carry their own altitude and are not subject to this floor.
+derives_from: NEED-safe-flight
+verification_status: passing
+satisfied_by: CMP-executor
+verified_by: VER-altitude-floor

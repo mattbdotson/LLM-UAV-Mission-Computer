@@ -1,0 +1,14 @@
+id: REQ-reasoning-logged
+kind: requirement
+name: "Reasoning field logged on every VLM decision"
+description: >
+  Every JSON command returned by the VLM shall include a non-empty `reasoning`
+  field. The planner shall log this field verbatim to the decisions.jsonl audit
+  trail on every planning cycle, along with the triggering event and the
+  resulting command.
+rationale: "Post-flight analysis and failure diagnosis depend on knowing what the model was thinking at each decision point."
+verification_method: inspection
+priority: shall
+status: draft
+derives_from: [NEED-explainable-decisions]
+fit_criterion: "decisions.jsonl contains one entry per cycle; each entry has reasoning, command, trigger, and timestamp fields."

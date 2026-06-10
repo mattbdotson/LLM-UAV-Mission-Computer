@@ -1,0 +1,7 @@
+id: TYP-command-kind
+kind: type
+name: "Command kind"
+description: "Enumeration of navigation commands the VLM may issue."
+status: draft
+type_kind: enum
+values: [GOTO_PIXEL, LOITER, GOTO_WAYPOINT, RTL]

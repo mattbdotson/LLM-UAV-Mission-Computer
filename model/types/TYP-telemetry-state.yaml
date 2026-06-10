@@ -1,0 +1,18 @@
+id: TYP-telemetry-state
+kind: type
+name: "Telemetry state"
+description: >
+  Snapshot of autopilot state returned by TelemetryListener.get_state().
+  Fields are populated incrementally as MAVLink messages arrive; absent
+  fields are missing from the dict (not None).
+status: draft
+type_kind: record
+fields:
+  - {name: lat,         type: float}
+  - {name: lon,         type: float}
+  - {name: alt,         type: float}
+  - {name: heading,     type: float}
+  - {name: airspeed,    type: float}
+  - {name: groundspeed, type: float}
+  - {name: mode,        type: int}
+  - {name: armed,       type: bool}

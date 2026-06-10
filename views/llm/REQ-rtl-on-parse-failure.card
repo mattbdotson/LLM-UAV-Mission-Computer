@@ -1,0 +1,9 @@
+id: REQ-rtl-on-parse-failure
+kind: requirement
+name: RTL on any parse or backend failure
+status: draft
+description: On any JSON parse error, backend exception, or map composition failure the planner shall return an RTL command rather than propagating the exception. The system shall never crash or stall due to a VLM failure.
+derives_from: NEED-safe-flight
+verification_status: not-run
+satisfied_by: CMP-planner
+verified_by: VER-rtl-on-parse-failure

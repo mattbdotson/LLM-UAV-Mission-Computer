@@ -1,0 +1,30 @@
+id: BHV-mission-fsm
+kind: behavior
+name: "Mission state machine"
+description: >
+  Event-driven finite state machine that drives the mission lifecycle.
+  The VLM (planner) is called only at decision-point events, not on a timer.
+  STUCK is the only recovery state; all paths terminate in RETURNING or LANDED.
+behavior_type: state_machine
+conformance_level: structural
+status: draft
+allocated_to: CMP-mission-computer
+satisfies:
+  - REQ-event-driven-planning
+  - REQ-fsm-bounded
+states: [PREFLIGHT, TAKEOFF, TRANSIT, ON_TASK, STUCK, RETURNING, LANDED]
+initial: PREFLIGHT
+transitions:
+  - {from: PREFLIGHT,  to: TAKEOFF,   trigger: arm_takeoff}
+  - {from: TAKEOFF,    to: TRANSIT,   trigger: altitude_reached}
+  - {from: TRANSIT,    to: ON_TASK,   trigger: waypoint_reached}
+  - {from: ON_TASK,    to: STUCK,     trigger: no_progress,    guard: "elapsed > 600 s"}
+  - {from: STUCK,      to: ON_TASK,   trigger: waypoint_reached}
+  - {from: ON_TASK,    to: RETURNING, trigger: rtl_command}
+  - {from: ON_TASK,    to: RETURNING, trigger: map_boundary}
+  - {from: RETURNING,  to: LANDED,    trigger: mode_changed,   guard: "mode == LAND"}
+invariants:
+  - "state == LANDED implies armed == false"
+properties:
+  - {kind: safety,   text: "never transitions directly from PREFLIGHT to LANDED"}
+  - {kind: liveness, text: "eventually reaches LANDED or RETURNING from any reachable state"}

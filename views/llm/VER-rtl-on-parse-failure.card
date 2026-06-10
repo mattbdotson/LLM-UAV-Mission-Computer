@@ -1,0 +1,10 @@
+id: VER-rtl-on-parse-failure
+kind: verification
+name: Parse and backend failures fall back to RTL
+status: draft
+description: Inspect Planner.decide_with_context: every exception path (JSONDecodeError, general Exception, map composition failure) must return a dict with command=='rtl'. No exception may propagate to the state machine.
+verifies: REQ-rtl-on-parse-failure
+scope: CMP-planner
+method: inspection
+executions: 0
+latest_outcome: not-run

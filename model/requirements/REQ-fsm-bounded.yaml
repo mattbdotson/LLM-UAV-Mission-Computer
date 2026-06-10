@@ -1,0 +1,14 @@
+id: REQ-fsm-bounded
+kind: requirement
+name: "Mission state machine reaches a terminal state"
+description: >
+  The mission state machine shall have exactly two terminal states: LANDED
+  and RETURNING. Every non-terminal state shall have at least one transition
+  that eventually leads to a terminal state. The system shall never deadlock
+  in a non-terminal state indefinitely.
+rationale: "An unbounded mission that never terminates is operationally unacceptable and prevents post-flight analysis."
+verification_method: analysis
+priority: shall
+status: draft
+derives_from: [NEED-safe-flight]
+fit_criterion: "State graph is finite; every path from PREFLIGHT reaches LANDED or RETURNING within a bounded number of transitions."

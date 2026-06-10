@@ -1,0 +1,8 @@
+id: REQ-fsm-bounded
+kind: requirement
+name: Mission state machine reaches a terminal state
+status: draft
+description: The mission state machine shall have exactly two terminal states: LANDED and RETURNING. Every non-terminal state shall have at least one transition that eventually leads to a terminal state. The system shall never deadlock in a non-terminal state indefinitely.
+derives_from: NEED-safe-flight
+verification_status: unverified
+satisfied_by: BHV-mission-fsm

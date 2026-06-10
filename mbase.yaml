@@ -1,0 +1,21 @@
+metamodel_version: 1
+project: uav-mission-computer
+model_root: model/
+views_root: views/
+levels: [system, subsystem, component]
+adapters:
+  python:
+    roots: [mission_manager/]
+    type_map:
+      TYP-mission-command: "dict"
+      TYP-telemetry-state: "dict"
+severity: {}
+roles:
+  modeler:
+    write: ["model/**", "views/**"]
+  implementer:
+    write: ["mission_manager/**", "views/**"]
+  builder:
+    write: []
+  tester:
+    write: ["mission_manager/tests/**"]

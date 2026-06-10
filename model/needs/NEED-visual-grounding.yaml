@@ -1,0 +1,11 @@
+id: NEED-visual-grounding
+kind: need
+name: "VLM reasons from image space, not pre-encoded coordinates"
+description: >
+  The VLM must identify features and navigation targets by reading the map
+  image, not by recalling coordinate math that small models perform unreliably.
+  This drives the pixel-coordinate output schema and the prompt design that
+  strips named landmarks and coordinate answer keys.
+stakeholder: "System architect"
+status: draft
+derives_from: [CON-autonomous-mission-loop]

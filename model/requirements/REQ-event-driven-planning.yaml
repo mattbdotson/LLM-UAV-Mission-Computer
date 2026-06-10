@@ -1,0 +1,14 @@
+id: REQ-event-driven-planning
+kind: requirement
+name: "VLM called only at state-machine decision points"
+description: >
+  The planner shall be invoked only when the state machine fires a decision
+  event (altitude_reached, waypoint_reached, no_progress). It shall not be
+  called on a fixed time interval. This ensures each VLM call is semantically
+  meaningful and the model always has a relevant trigger.
+rationale: "Time-driven polling would call the VLM mid-manoeuvre when no decision is needed, wasting inference budget and producing nonsense commands."
+verification_method: inspection
+priority: shall
+status: draft
+derives_from: [NEED-explainable-decisions]
+fit_criterion: "Planner.decide_with_context is called only from StateMachine._llm_decision, which is called only from event handlers."

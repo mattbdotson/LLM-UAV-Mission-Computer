@@ -1,0 +1,10 @@
+id: VER-altitude-floor
+kind: verification
+name: 50 m altitude floor enforced in executor
+status: draft
+description: Inspect Executor._goto_waypoint: the line `alt = max(alt, 50)` must be present before any MAVLink waypoint command is issued. Also verify that _loiter and _fly_waypoints do NOT contain this floor.
+verifies: REQ-altitude-floor
+scope: CMP-executor
+method: inspection
+executions: 1
+latest_outcome: passed

@@ -1,0 +1,16 @@
+id: VER-reasoning-logged
+kind: verification
+name: "Reasoning field present and logged on every decision"
+description: >
+  Inspect MissionContext.add_decision and Planner.decide_with_context:
+  the reasoning field from the command dict must be extracted and written to
+  decisions.jsonl on every non-failure cycle. Inspect a sample decisions.jsonl
+  from a completed mission run for presence of the reasoning field.
+verifies: [REQ-reasoning-logged]
+scope: CMP-planner
+method: inspection
+status: draft
+executions:
+  - date: "2026-06-02"
+    outcome: passed
+    notes: "Reviewed decisions.jsonl from run 20260602_205327 — reasoning field present on all 6 entries."

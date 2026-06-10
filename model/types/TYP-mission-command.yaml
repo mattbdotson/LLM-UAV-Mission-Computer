@@ -1,0 +1,15 @@
+id: TYP-mission-command
+kind: type
+name: "Mission command"
+description: >
+  One VLM decision: a command kind, its parameters, the reasoning trace, and
+  optional scratchpad fields (progress, next_intent) the model uses to
+  maintain continuity across decisions.
+status: draft
+type_kind: record
+fields:
+  - {name: command,      type: TYP-command-kind}
+  - {name: reasoning,    type: str}
+  - {name: params,       type: str}
+  - {name: progress,     type: str}
+  - {name: next_intent,  type: str}

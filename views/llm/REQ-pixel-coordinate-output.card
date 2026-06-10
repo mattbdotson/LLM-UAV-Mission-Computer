@@ -1,0 +1,9 @@
+id: REQ-pixel-coordinate-output
+kind: requirement
+name: VLM outputs pixel coordinates; executor owns GPS conversion
+status: draft
+description: The VLM shall emit integer pixel coordinates (x, y) on a 512x512 map image rather than GPS coordinates. The executor shall perform the pixel-to-GPS conversion. No component upstream of the executor shall perform or require GPS arithmetic.
+derives_from: NEED-visual-grounding
+verification_status: passing
+satisfied_by: CMP-executor
+verified_by: VER-pixel-coordinate-output

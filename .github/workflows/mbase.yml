@@ -1,0 +1,18 @@
+name: mbase
+on: [push, pull_request]
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install mbase
+      - run: mbase validate
+      - run: mbase render --check
+      - run: mbase trace
+      - run: mbase conform
+      # plus your test runner, e.g.:
+      # - run: pytest -q --junitxml=test-results.xml
+      # - run: mbase trace --junit test-results.xml

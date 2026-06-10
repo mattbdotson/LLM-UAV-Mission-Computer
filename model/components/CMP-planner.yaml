@@ -1,0 +1,16 @@
+id: CMP-planner
+kind: component
+name: "Planner"
+description: >
+  At each decision event, composes a 512x512 map image (aircraft position,
+  heading arrow, flight trail overlaid on an OpenStreetMap tile), builds a
+  context-aware prompt from the event type and mission context, calls the
+  VLM inference backend (Gemma 4 E2B via llama.cpp HTTP API), parses the
+  JSON response, stores the scratchpad fields (progress, next_intent), and
+  returns an RTL command on any failure.
+conformance_level: structural
+status: draft
+parent: CMP-mission-computer
+satisfies:
+  - REQ-rtl-on-parse-failure
+  - REQ-reasoning-logged
