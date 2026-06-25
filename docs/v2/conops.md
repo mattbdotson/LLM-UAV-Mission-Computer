@@ -32,15 +32,13 @@ A specialized vision model performs continuous perception; the VLM stays event-d
 
 ## 4. Primary Actors / External Entities
 
+These are the entities *outside* the system boundary (the autonomy stack) that the system interacts with. The system's own internal layers — the mission-management harness, the reasoning layer, and the perception layer — are described in §2 and decomposed in the architecture arm, not listed here.
+
 | Actor | Role |
 |---|---|
 | Autopilot (ArduPlane SITL) | Owns flight control; speaks MAVLink |
-| Gazebo simulation (on Wintermute) | Provides the simulated camera, gimbal, boresight rangefinder, and authored scenarios |
-| Reasoning model (Gemma 4 E2B, via llama-server on the edge compute) | Mission-level decisions |
-| Perception service (TensorRT, on the edge compute) | Continuous detection and tracking |
+| Simulation (Gazebo) | Provides the simulated world, camera, gimbal, and boresight rangefinder; hosts authored scenarios |
 | Operator | Authors missions and scenarios; reviews decision and perception logs |
-
-llama-server and the perception service run concurrently on the flight-representative edge compute — see constraints.
 
 ## 5. Sensor Concept
 
