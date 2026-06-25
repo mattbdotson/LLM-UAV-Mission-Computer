@@ -37,23 +37,22 @@ These are the entities *outside* the system boundary (the autonomy stack) that t
 | Actor | Role |
 |---|---|
 | Autopilot (ArduPlane SITL) | Owns flight control; speaks MAVLink |
-| Simulation (Gazebo) | Provides the simulated world, camera, gimbal, and boresight rangefinder; hosts authored scenarios |
+| Simulation (Gazebo) | Provides the simulated world, camera, gimbal, boresight rangefinder, and laser altimeter; hosts authored scenarios |
 | Operator | Authors missions and scenarios; reviews decision and perception logs |
 
 ## 5. Simulated Sensors Concept
 
-The perception layer draws on a small set of simulated sensors. The V2.0 payload is a single active-pointing gimbaled camera with a co-aligned boresight laser rangefinder; the geo-projector fuses their output with the gimbal's pointing feedback and the aircraft's own pose (the latter already available from the autopilot, as in V1.0).
+The perception layer draws on a small set of simulated sensors — a single active-pointing gimbaled camera, a co-aligned boresight laser rangefinder, and a fixed nadir laser altimeter. The geo-projector fuses their output with the gimbal's pointing feedback and the aircraft's own pose (the latter already available from the autopilot, as in V1.0).
 
-| Sensor | Measures | Role in perception | Status |
+| Sensor | Measures | Pointing | Role in perception |
 |---|---|---|---|
-| Gimbaled camera | Scene imagery (the camera-frame stream) | Primary perception input | New — V2.0 payload |
-| Boresight laser rangefinder | Range along the camera line of sight | Geo-locates the observed target; reports AGL when nadir | New — V2.0 payload |
-| Gimbal pointing feedback | Camera orientation relative to the airframe | Supplies camera pose for geo-projection | New — with the gimbal |
-| Aircraft pose | Position, altitude, attitude (GPS + IMU) | Platform pose the geo-projector composes with the camera/gimbal pose | Existing — autopilot via MAVLink |
+| Gimbaled camera | Scene imagery (the camera-frame stream) | Gimbaled — active, with a stabilized-nadir subset | Primary perception input |
+| Boresight laser rangefinder | Range along the camera line of sight | Gimbaled — co-aligned with the camera | Geo-locates the observed/tracked target |
+| Laser altimeter | Range to the ground directly below (AGL) | Fixed nadir | Ground-plane height, independent of where the gimbal points |
 
 The camera is steerable but operable in a stabilized-nadir subset. Camera pointing is abstracted as a pose-source, so fixed, stabilized, and active modes are configurations rather than rewrites.
 
-The boresight rangefinder collapses geo-projection from "ray ∩ assumed ground plane" to "ray + measured range = point," deleting the flat-ground assumption for the observed target. It subsumes a nadir altimeter — in stabilized-nadir mode the same sensor reports AGL. It measures one ray (the boresight), so it precisely geo-locates the centered/tracked object; off-axis detections elsewhere in the wide frame fall back to ground-plane projection.
+The boresight rangefinder collapses geo-projection from "ray ∩ assumed ground plane" to "ray + measured range = point," deleting the flat-ground assumption for the observed target. Because it is gimbaled with the camera, it ranges whatever the camera is centered on — ideal for the tracked target, but unable to report nadir AGL while the gimbal is pointed off-axis. The dedicated nadir laser altimeter fills that gap: it always reports ground height directly below the aircraft, so off-axis detections that fall back to ground-plane projection keep a fresh AGL even while the gimbal is busy tracking a target.
 
 ## 6. Reasoning-Controls-Attention Concept
 
