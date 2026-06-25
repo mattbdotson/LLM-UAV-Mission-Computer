@@ -72,7 +72,9 @@ Target and landmark detection first — detections *write to the map* and stay *
 
 ---
 
-## 11. Operational Vignette — Patrol, Detect, Observe a Slow-Moving Ground Target
+## 11. Operational Vignette (System / Mission View) — Patrol, Detect, Observe a Slow-Moving Ground Target
+
+This vignette describes the *aircraft's* behavior during a mission. The operator-side counterpart — how a person stands up and runs a SITL session — is in Section 12.
 
 ### 11.1 Nominal Case
 
@@ -107,3 +109,40 @@ Target and landmark detection first — detections *write to the map* and stay *
 - The `detection` event requires an admissibility gate tied to mission state — it is not a global interrupt.
 - **Target-outpaces-orbit** and **track-lost** converge on the same escalation path; they may collapse into a single `track_lost` / `observation_ended` event carrying a reason code rather than two distinct events.
 - Every observation requires a defined termination condition; the *mechanism* is deferred (track-mode question), but the *requirement* is firm.
+
+---
+
+## 12. SITL Operations Vignette (Operator View)
+
+This vignette describes how a person stands up and runs a V2.0 SITL session. It is the operator-side counterpart to the system/mission view in Section 11, and it is deliberately mechanism-free — component placement, transports, and IPC boundaries are design-arm decisions derived later, not fixed here.
+
+1. **Author the scenario.** The operator defines a run: a world (the Canberra area as a 3D environment), placed entities to be perceived (targets and landmarks — static or slow-moving), and a mission objective in natural language. This is new in V2.0 — V1.0 reasoned over a fixed map with no perceivable world; V2.0 sessions need an authored world with things in it to detect.
+
+2. **Bring up the session — sim on the workstation, flight stack on flight-representative edge hardware.** The operator stands up two cleanly separated halves:
+   - *The simulation side, on the dev workstation:* the simulated world and the autopilot / flight-dynamics simulation — everything that, in real flight, is *replaced by reality* (the actual airframe, the actual world).
+   - *The flight stack, on edge compute:* the perception and reasoning capabilities — everything that, in real flight, *carries over unchanged because it physically flies on the aircraft*.
+
+   The self-imposed constraint is that the flight stack runs on **aircraft-representative edge hardware**, not on the workstation's resources. This is deliberate discipline: it would be easier to run perception and reasoning on the dev machine's GPU, but that would let the simulation lie about whether the autonomy is feasible within an airframe's compute, power, and memory budget. By constraining the flight stack to edge-class hardware from the start, the sim stays honest about flight viability — what works in SITL is what could work onboard. The edge tier is treated as a *role*, not a single fixed box: it is the compute that would fly, and it may comprise one or more edge units as the perception + reasoning workload demands.
+
+3. **Launch the mission.** The operator arms and launches; the aircraft takes off and begins flying the objective autonomously.
+
+4. **Watch autonomous operation.** As the aircraft flies, it perceives the world through its sensor, accumulates world-state, and the reasoning layer makes mission decisions. The operator observes two distinct things side by side: **what the system *perceived*** (detections/tracks on the map) and **what the system *decided*** (the command stream with its reasoning).
+
+5. **Observe events, rarely intervene.** Detections fire, the system reacts (investigate / observe / continue), and off-nominal paths play out (stuck, track lost). The operator mostly watches — the point is to see the autonomy behave — but retains the ability to abort.
+
+6. **Mission completes.** The aircraft RTLs and lands, or the operator stops the run.
+
+7. **Review the run.** The operator examines the archived artifacts — the decision log with reasoning, the perception/detection log, the imagery the system saw, and the mission outcome — to understand *why* the system did what it did. This extends V1.0's per-run archiving philosophy to perception.
+
+### 12.1 The Operator Holds the Answer Key; the System Never Sees It
+
+A discipline that is operational, not architectural: the operator authors ground truth (places the targets), but that ground truth exists for **scoring** — comparing what the system perceived against where things actually were — and is *never* fed to the system. The operator knows the answers; the aircraft flies blind and has to earn them. This is the no-answer-key invariant (Section 9) expressed as an operator practice.
+
+### 12.2 Notes Forward to Requirements
+
+- Scenario authoring with placed, perceivable entities (static or slow-moving) in a 3D world.
+- Reproducible scenarios, so experiments are comparable across runs.
+- Perception observability *separate from* reasoning observability.
+- Combined decision + detection logging for post-run review.
+- A held-out ground-truth / scoring path that stays out of the system under test.
+- The flight stack (perception + reasoning) constrained to flight-representative edge hardware; the sim side (world + autopilot) on the workstation.
