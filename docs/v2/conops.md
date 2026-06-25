@@ -13,7 +13,7 @@
 
 ## 1. Increment Purpose
 
-V2.0 gives the system sight. V1.0 reasons over a synthetic top-down map; V2.0 adds a gimbaled onboard (simulated) camera and a perception pipeline that turns what the aircraft sees into structured, geo-located inputs the reasoning layer can use — without ever asking the 2B VLM to interpret imagery itself.
+V2.0 gives the system sight. V1.0 reasons over a synthetic top-down map; V2.0 adds a gimbaled onboard (simulated) camera and a perception pipeline that turns what the aircraft sees into structured, geo-located inputs the reasoning layer can use. The 2B VLM is never asked to interpret raw, unlabeled camera frames — that is the perception layer's job; the VLM continues to reason over the distilled map view, as it did in V1.0.
 
 ## 2. Operational Context
 
