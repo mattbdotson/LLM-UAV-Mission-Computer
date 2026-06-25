@@ -17,11 +17,18 @@ V2.0 gives the system sight. V1.0 reasons over a synthetic top-down map; V2.0 ad
 
 ## 2. Operational Context
 
-The Mission Manager continues to sit between the autopilot and the reasoning layer, exactly as in V1.0; the event-driven VLM, map substrate, state machine, and MAVLink/HTTP boundaries all carry forward unchanged in role. V2.0 adds a second input modality (a camera-frame stream) and a perception layer beneath the existing reasoning layer.
+The system is an autonomous fixed-wing UAV capability in which a vision-language model serves as the mission-level autonomy. Functionally it is a stack of logical layers, each a role rather than a fixed piece of hardware:
+
+- **Flight control** — the autopilot. Owns the aircraft's control loops; speaks MAVLink. (In this phase it is simulated.)
+- **Mission management** — a harness (the Mission Manager) between the autopilot and the reasoning layer. It ingests telemetry, maintains mission state, recognizes when a decision is due, invokes the reasoning layer, and translates the returned intent into autopilot commands.
+- **Reasoning** — the event-driven VLM, called by the harness at decision points to make mission-level choices.
+- **Perception (new in V2.0)** — a continuous vision layer that turns the onboard camera stream into a structured world model the reasoning layer can draw on.
+
+The layers are logical, not physical. The reasoning and perception layers run on flight-representative edge hardware; the mission-management harness — and, in this phase, the simulated autopilot and world — run on the workstation. The boundaries between the layers are logical, so the same stack would carry onto a real airframe with only the simulated layers replaced by reality.
 
 ## 3. Core Operational Idea — Perception and Reasoning Are Separate Layers
 
-A specialized vision model performs continuous perception; the VLM stays event-driven and reasons over a distilled world model. The VLM never touches raw frames. The map remains the substrate the VLM reasons over — the camera *writes onto it* rather than replacing it.
+A specialized vision model performs continuous perception; the VLM stays event-driven and reasons over a distilled world model. The VLM never touches raw frames.
 
 ## 4. Primary Actors / External Entities
 

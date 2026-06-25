@@ -5,6 +5,9 @@ Autonomous UAV mission management system that uses a Vision Language Model (VLM)
 
 The core research question is: **what can a small edge VLM do as an autonomous mission planner when given visual spatial context?**
 
+## Versioning
+The project advances in increments, each documented under `docs/v<N>/`. The V1.0 baseline (`docs/v1/`) predates the current systems-engineering process and was documented less completely and consistently than later work — treat it as a **reference we build from, not a hard configuration we iterate against**. From V2.0 onward each increment is specified top-down (ConOps → requirements → architecture → design) under its own `docs/v<N>/` folder, following one systems-engineering "V" per increment.
+
 ## Hardware
 - **Dev PC**: Windows machine running WSL2 (Ubuntu 22.04)
 - **Mission Computer**: NVIDIA Jetson Orin Nano Super Developer Kit, nicknamed "Penny Royal" (Neal Asher Polity universe reference)
