@@ -28,7 +28,7 @@ The layers are logical, not physical. The reasoning and perception layers run on
 
 ## 3. Core Operational Idea — Perception and Reasoning Are Separate Layers
 
-A specialized vision model performs continuous perception; the VLM stays event-driven and reasons over a distilled world model. The VLM never touches raw frames.
+A specialized vision model performs continuous perception; the VLM stays event-driven and reasons over a distilled view of the resulting world model — the map view. The VLM never touches raw frames.
 
 ## 4. Primary Actors / External Entities
 
@@ -91,8 +91,8 @@ This vignette describes the *aircraft's* behavior during a mission. The operator
 
 ### 11.1 Nominal Case
 
-1. **Mission underway.** VLM navigates the patrol as in V1.0. Perception service runs on the edge compute alongside llama-server; gimbal in stabilized-nadir; boresight rangefinder reporting range/AGL.
-2. **Continuous perception (VLM idle).** Perception detects ground features, geo-locates each via boresight range + pose, and writes geodetic tracks — class, confidence, position, velocity, uncertainty — to the registry. The reasoning layer is not involved.
+1. **Mission underway.** VLM navigates the patrol as in V1.0. Perception service runs on the edge compute alongside llama-server; gimbal in stabilized-nadir; boresight rangefinder and laser altimeter reporting range and AGL.
+2. **Continuous perception (VLM idle).** Perception detects ground features, geo-locates each from aircraft pose and range — boresight range for a centered detection, ground-plane projection (using altimeter AGL) otherwise — and writes geodetic tracks (class, confidence, position, velocity, uncertainty) to the registry. The reasoning layer is not involved.
 3. **Detection interrupt.** A track crosses a class/confidence threshold → registry raises `detection` → interrupts the current leg and wakes the planner mid-flight.
 4. **VLM assessment.** Planner composes the VLM's map view (map + current tracks, perception labels permitted); VLM reasons "investigate or ignore?" → emits `observe {track_id}` or `continue`.
 5. **Tasking expansion (deterministic, no VLM).** The executor expands the single `observe track-7` intent into delegated control — the aircraft orbits track-7's live position and the gimbal holds the target on it — with no further VLM involvement. The rangefinder now measures range-to-target each frame.
@@ -109,7 +109,7 @@ This vignette describes the *aircraft's* behavior during a mission. The operator
 
 - **Track lost during observation.** *Trigger:* gimbal/tracker loses the target (terrain occlusion, target out-slews the gimbal, drops below detectability). *Behavior:* perception attempts short-term re-acquisition (coast on last velocity, local search) without waking the VLM. *Resolution:* re-acquired → resume; sustained loss → `track_lost` event → VLM decides search / abandon / RTL. Mirrors STUCK.
 
-- **Target outpaces the orbit.** *Trigger:* target speed approaches the orbit-able limit, or it exits map bounds. *Behavior:* executor detects the loiter geometry degrading and does **not** attempt pursuit (fast-mover intercept is out of scope) → raises `track_lost` (or an `observation_unviable` variant). *Resolution:* VLM abandons the observation and resumes, or RTLs.
+- **Target outpaces the orbit.** *Trigger:* target speed approaches the orbit-able limit, or it exits map bounds. *Behavior:* executor detects the orbit geometry degrading and does **not** attempt pursuit (fast-mover intercept is out of scope) → raises `track_lost` (or an `observation_ended` variant). *Resolution:* VLM abandons the observation and resumes, or RTLs.
 
 - **Perception fault.** *Trigger:* perception crashes, stalls, or stops producing detections. *Behavior:* system degrades to "no detections" — no `detection` events fire; aircraft continues on V1.0 map-based behavior. If it faults mid-observation, the delegated control loses its registry feed → executor fails safe (holds the last commanded orbit) and escalates to the VLM. *Invariant:* must not stall the MAVLink drain or take down the Mission Manager.
 
@@ -139,7 +139,7 @@ This vignette describes how a person stands up and runs a V2.0 SITL session. It 
 
 3. **Launch the mission.** The operator arms and launches; the aircraft takes off and begins flying the objective autonomously.
 
-4. **Watch autonomous operation.** As the aircraft flies, it perceives the world through its sensor, accumulates world-state, and the reasoning layer makes mission decisions. The operator observes two distinct things side by side: **what the system *perceived*** (detections/tracks on the map) and **what the system *decided*** (the command stream with its reasoning).
+4. **Watch autonomous operation.** As the aircraft flies, it perceives the world through its sensors, accumulates world-state, and the reasoning layer makes mission decisions. The operator observes two distinct things side by side: **what the system *perceived*** (detections/tracks on the map) and **what the system *decided*** (the command stream with its reasoning).
 
 5. **Observe events, rarely intervene.** Detections fire, the system reacts (investigate / observe / continue), and off-nominal paths play out (stuck, track lost). The operator mostly watches — the point is to see the autonomy behave — but retains the ability to abort.
 
