@@ -17,7 +17,7 @@ V2.0 gives the system sight. V1.0 reasons over a synthetic top-down map; V2.0 ad
 
 ## 2. Operational Context
 
-The mission computer continues to sit between the autopilot and the reasoning layer. V1.0's event-driven VLM, map substrate, state machine, and MAVLink/HTTP boundaries all carry forward unchanged in role. V2.0 adds a second input modality (a camera-frame stream) and a perception layer beneath the existing reasoning layer.
+The Mission Manager continues to sit between the autopilot and the reasoning layer, exactly as in V1.0; the event-driven VLM, map substrate, state machine, and MAVLink/HTTP boundaries all carry forward unchanged in role. V2.0 adds a second input modality (a camera-frame stream) and a perception layer beneath the existing reasoning layer.
 
 ## 3. Core Operational Idea — Perception and Reasoning Are Separate Layers
 
@@ -29,11 +29,11 @@ A specialized vision model performs continuous perception; the VLM stays event-d
 |---|---|
 | Autopilot (ArduPlane SITL) | Owns flight control; speaks MAVLink |
 | Gazebo simulation (on Wintermute) | Provides the simulated camera, gimbal, boresight rangefinder, and authored scenarios |
-| Reasoning model (Gemma 4 E2B, via llama-server **on Penny Royal**) | Mission-level decisions |
-| Perception service (TensorRT, **on Penny Royal**) | Continuous detection and tracking |
+| Reasoning model (Gemma 4 E2B, via llama-server on the edge compute) | Mission-level decisions |
+| Perception service (TensorRT, on the edge compute) | Continuous detection and tracking |
 | Operator | Authors missions and scenarios; reviews decision and perception logs |
 
-llama-server and the perception service run concurrently on the one Penny Royal board (Jetson Orin Nano Super, 8GB unified memory) — see constraints.
+llama-server and the perception service run concurrently on the flight-representative edge compute — see constraints.
 
 ## 5. Sensor Concept
 
@@ -43,7 +43,7 @@ The boresight rangefinder collapses geo-projection from "ray ∩ assumed ground 
 
 ## 6. Reasoning-Controls-Attention Concept
 
-The VLM may direct the sensor at the intent level (`observe {track_id}`), expressed over symbolic registry references — never over pixels or appearance. Closed-loop tracking is delegated to the perception/gimbal layer, exactly as flight control is delegated to the autopilot. The VLM issues one intent command; deterministic layers expand it into delegated control sub-loops (autopilot orbit + gimbal track). Sustained tracking failure escalates back to the VLM as an event, mirroring the V1.0 STUCK pattern.
+The VLM may direct the sensor at the intent level (`observe {track_id}`), expressed over symbolic registry references — never over pixels or appearance. Closed-loop tracking is delegated to the perception/gimbal layer, exactly as flight control is delegated to the autopilot. The VLM issues one intent command; deterministic layers expand it into delegated control (the aircraft orbits the target; the gimbal holds it). Sustained tracking failure escalates back to the VLM as an event, mirroring the V1.0 STUCK pattern.
 
 ## 7. Initial Capability Scope
 
@@ -59,16 +59,16 @@ Target and landmark detection first — detections *write to the map* and stay *
 
 ## 9. Guiding Invariants
 
-- **Sim/real boundary is the design.** The mission computer sees only a MAVLink stream and a camera-frame stream, and emits MAVLink. Swapping Gazebo for a real aircraft changes nothing inside it.
+- **Sim/real boundary is the design.** The autonomy stack — the Mission Manager, perception, and reasoning together, i.e. everything that is neither the autopilot nor the simulated world — sees only a MAVLink stream and a camera-frame stream, and emits MAVLink. Swapping Gazebo for a real aircraft changes nothing inside it.
 - **No-answer-key invariant (carried forward from V1.0, corrected for a perception system).** The prohibition lives at the *system boundary*: the simulator's ground truth must never be injected as a shortcut — the system (perception + reasoning *together*) must earn its world knowledge from the sensor streams. Once the perception layer has *legitimately* detected and labeled something, that result may be handed to the VLM in whatever representation is most effective (text, structured fields, or marks on the map). Perception earned it; it is not an oracle leak.
-- **Perception cannot stall the safety loop.** Continuous perception must not block the single-owner MAVLink drain, and a perception fault must degrade to "no detections," not a dead mission computer.
+- **Perception cannot stall the safety loop.** Continuous perception must not block the single-owner MAVLink drain, and a perception fault must degrade to "no detections," not a dead Mission Manager.
 
 ## 10. Key Constraints & Assumptions
 
-- Penny Royal runs the perception service and llama-server concurrently on one 8GB unified-memory board; memory/compute contention is acknowledged, and additional edge hardware is on the table if needed.
+- The flight-representative edge tier — currently a single Jetson Orin Nano Super (8GB unified memory) — runs the perception service and llama-server concurrently; memory/compute contention is acknowledged, and the edge tier may grow to additional units if needed.
 - Geo-projection accuracy is bounded by attitude/timing/boresight error; the boresight rangefinder removes the ground-plane modeling error for the observed target. Acceptable accuracy is set by a forgiving consumer (a coarse, event-driven reasoner), since detections are out of the safety loop.
 - Validation discipline: the geo-projector is proven in the stabilized-nadir regime before active pointing is enabled.
-- Observations run continuous sub-loops (orbit re-centering + gimbal track); every observation must have a defined termination condition (mechanism TBD).
+- Observations run continuous delegated control (the aircraft orbiting the target, the gimbal holding it); every observation must have a defined termination condition (mechanism TBD).
 
 ---
 
@@ -78,13 +78,13 @@ This vignette describes the *aircraft's* behavior during a mission. The operator
 
 ### 11.1 Nominal Case
 
-1. **Mission underway.** VLM navigates the patrol as in V1.0. Perception service runs on Penny Royal alongside llama-server; gimbal in stabilized-nadir; boresight rangefinder reporting range/AGL.
+1. **Mission underway.** VLM navigates the patrol as in V1.0. Perception service runs on the edge compute alongside llama-server; gimbal in stabilized-nadir; boresight rangefinder reporting range/AGL.
 2. **Continuous perception (VLM idle).** Perception detects ground features, geo-locates each via boresight range + pose, and writes geodetic tracks — class, confidence, position, velocity, uncertainty — to the registry. The reasoning layer is not involved.
 3. **Detection interrupt.** A track crosses a class/confidence threshold → registry raises `detection` → interrupts the current leg and wakes the planner mid-flight.
-4. **VLM assessment.** Planner composes the VLMView (map + current tracks, perception labels permitted); VLM reasons "investigate or ignore?" → emits `observe {track_id}` or `continue`.
-5. **Tasking expansion (deterministic, no VLM).** Executor expands `observe track-7` into two delegated sub-loops: (a) autopilot LOITER re-centering on track-7's live registry position; (b) gimbal closed-loop track of track-7. Rangefinder now measures range-to-target each frame.
-6. **Observation.** Aircraft orbits the slowly-moving target as the executor re-centers the loiter from the registry; gimbal holds the target; multi-bearing, ranged observations refine its position/velocity and shrink uncertainty.
-7. **Termination & resolution.** A defined termination condition ends the observation (mechanism TBD) → both sub-loops torn down → VLM decides next: log and resume patrol, or RTL.
+4. **VLM assessment.** Planner composes the VLM's map view (map + current tracks, perception labels permitted); VLM reasons "investigate or ignore?" → emits `observe {track_id}` or `continue`.
+5. **Tasking expansion (deterministic, no VLM).** The executor expands the single `observe track-7` intent into delegated control — the aircraft orbits track-7's live position and the gimbal holds the target on it — with no further VLM involvement. The rangefinder now measures range-to-target each frame.
+6. **Observation.** Aircraft orbits the slowly-moving target, the orbit following the target's live position; the gimbal holds the target; multi-bearing, ranged observations refine its position/velocity and shrink uncertainty.
+7. **Termination & resolution.** A defined termination condition ends the observation (mechanism TBD) → the delegated orbit-and-gimbal control is released → VLM decides next: log and resume patrol, or RTL.
 
 ### 11.2 Off-Nominal Cases
 
@@ -98,9 +98,9 @@ This vignette describes the *aircraft's* behavior during a mission. The operator
 
 - **Target outpaces the orbit.** *Trigger:* target speed approaches the orbit-able limit, or it exits map bounds. *Behavior:* executor detects the loiter geometry degrading and does **not** attempt pursuit (fast-mover intercept is out of scope) → raises `track_lost` (or an `observation_unviable` variant). *Resolution:* VLM abandons the observation and resumes, or RTLs.
 
-- **Perception fault.** *Trigger:* perception crashes, stalls, or stops producing detections. *Behavior:* system degrades to "no detections" — no `detection` events fire; aircraft continues on V1.0 map-based behavior. If it faults mid-observation, the sub-loops lose their registry feed → executor fails safe (hold last loiter center) and escalates to the VLM. *Invariant:* must not stall the MAVLink drain or take down the mission computer.
+- **Perception fault.** *Trigger:* perception crashes, stalls, or stops producing detections. *Behavior:* system degrades to "no detections" — no `detection` events fire; aircraft continues on V1.0 map-based behavior. If it faults mid-observation, the delegated control loses its registry feed → executor fails safe (holds the last commanded orbit) and escalates to the VLM. *Invariant:* must not stall the MAVLink drain or take down the Mission Manager.
 
-- **Stale registry data.** *Trigger:* a referenced track goes stale (no recent perception updates) while the VLM is reasoning over it. *Behavior:* registry TTL/decay flags or expires stale tracks; the VLMView does not present stale tracks as current. *Resolution:* an actively-observed track going stale is treated as `track_lost`.
+- **Stale registry data.** *Trigger:* a referenced track goes stale (no recent perception updates) while the VLM is reasoning over it. *Behavior:* registry TTL/decay flags or expires stale tracks; the VLM's map view does not present stale tracks as current. *Resolution:* an actively-observed track going stale is treated as `track_lost`.
 
 - **Detection in an inadmissible state.** *Trigger:* a `detection` fires during TAKEOFF, RETURNING, or an already-running observation. *Behavior:* the interrupt is admissible only in mission states where acting makes sense (ON_TASK, and TRANSIT TBD); it is suppressed or deferred during TAKEOFF/RETURNING, and a new detection mid-observation is registered but does **not** preempt the current one. *Resolution:* deferred detections persist in the registry for later consideration.
 
