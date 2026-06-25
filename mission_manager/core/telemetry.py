@@ -1,6 +1,6 @@
 from pymavlink import mavutil
 
-# mbase:implements CMP-telemetry
+
 class TelemetryListener:
     def __init__(self, connection_string):
         print(f"Connecting to autopilot at {connection_string}")
@@ -36,7 +36,7 @@ class TelemetryListener:
                 self.state["mode"] = msg.custom_mode
                 self.state["armed"] = bool(msg.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED)
 
-    def get_state(self) -> dict:
+    def get_state(self):
         return self.state
 
     def get_raw_messages(self):

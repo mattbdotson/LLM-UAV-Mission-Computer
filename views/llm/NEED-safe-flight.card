@@ -1,7 +1,0 @@
-id: NEED-safe-flight
-kind: need
-name: Aircraft maintains safe altitude and recovers from failures
-status: draft
-description: The mission computer must not command the aircraft below a safe altitude, must recover to a known-safe state (RTL) on any VLM or parse failure, and must guarantee the mission reaches a terminal state (LANDED or RETURNING) regardless of VLM behavior.
-derives_from: CON-autonomous-mission-loop
-derived_by: REQ-altitude-floor, REQ-fsm-bounded, REQ-rtl-on-parse-failure

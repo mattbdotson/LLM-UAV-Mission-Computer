@@ -1,8 +1,0 @@
-# MBASE: the CI byte-diff gate (render --check) requires stable line endings.
-* text=auto eol=lf
-*.py text eol=lf
-*.md text eol=lf
-*.yaml text eol=lf
-*.yml text eol=lf
-*.json text eol=lf
-*.card text eol=lf

@@ -1,7 +1,6 @@
 from pymavlink import mavutil
 import time
 
-# mbase:implements CMP-executor
 class Executor:
     def __init__(self, connection):
         self.connection = connection
@@ -60,7 +59,7 @@ class Executor:
         time.sleep(2)
         print("Ready for waypoint commands")
 
-    def execute(self, command: dict) -> None:
+    def execute(self, command):
         cmd = command.get("command")
         params = command.get("params", {})
 

@@ -1,7 +1,0 @@
-id: IFC-mavlink-cmd
-kind: interface
-name: MAVLink command execution interface
-status: draft
-conformance_level: structural
-description: Execute a mission command by translating it into the appropriate MAVLink message sequence. The executor owns all pixel-to-GPS conversion and altitude-floor enforcement.
-operation: execute(command: TYP-mission-command) -> None

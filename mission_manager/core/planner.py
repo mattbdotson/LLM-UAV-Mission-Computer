@@ -17,7 +17,6 @@ def load_prompt(filename):
     with open(prompt_path, 'r') as f:
         return f.read()
 
-# mbase:implements CMP-planner
 class Planner:
     def __init__(self, stub=False):
         self.stub = stub

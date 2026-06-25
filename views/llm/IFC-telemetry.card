@@ -1,7 +1,0 @@
-id: IFC-telemetry
-kind: interface
-name: Telemetry state interface
-status: draft
-conformance_level: structural
-description: Read the latest autopilot state snapshot from the telemetry listener.
-operation: get_state() -> TYP-telemetry-state
