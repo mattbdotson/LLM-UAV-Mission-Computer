@@ -40,9 +40,18 @@ These are the entities *outside* the system boundary (the autonomy stack) that t
 | Simulation (Gazebo) | Provides the simulated world, camera, gimbal, and boresight rangefinder; hosts authored scenarios |
 | Operator | Authors missions and scenarios; reviews decision and perception logs |
 
-## 5. Sensor Concept
+## 5. Simulated Sensors Concept
 
-A single active-pointing gimbaled camera, steerable but operable in a stabilized-nadir subset. A simulated **boresight laser rangefinder**, co-aligned with the camera, measures actual range along the line of sight to whatever the camera observes. Camera pointing is abstracted as a pose-source, so fixed, stabilized, and active modes are configurations rather than rewrites.
+The perception layer draws on a small set of simulated sensors. The V2.0 payload is a single active-pointing gimbaled camera with a co-aligned boresight laser rangefinder; the geo-projector fuses their output with the gimbal's pointing feedback and the aircraft's own pose (the latter already available from the autopilot, as in V1.0).
+
+| Sensor | Measures | Role in perception | Status |
+|---|---|---|---|
+| Gimbaled camera | Scene imagery (the camera-frame stream) | Primary perception input | New — V2.0 payload |
+| Boresight laser rangefinder | Range along the camera line of sight | Geo-locates the observed target; reports AGL when nadir | New — V2.0 payload |
+| Gimbal pointing feedback | Camera orientation relative to the airframe | Supplies camera pose for geo-projection | New — with the gimbal |
+| Aircraft pose | Position, altitude, attitude (GPS + IMU) | Platform pose the geo-projector composes with the camera/gimbal pose | Existing — autopilot via MAVLink |
+
+The camera is steerable but operable in a stabilized-nadir subset. Camera pointing is abstracted as a pose-source, so fixed, stabilized, and active modes are configurations rather than rewrites.
 
 The boresight rangefinder collapses geo-projection from "ray ∩ assumed ground plane" to "ray + measured range = point," deleting the flat-ground assumption for the observed target. It subsumes a nadir altimeter — in stabilized-nadir mode the same sensor reports AGL. It measures one ray (the boresight), so it precisely geo-locates the centered/tracked object; off-axis detections elsewhere in the wide frame fall back to ground-plane projection.
 
