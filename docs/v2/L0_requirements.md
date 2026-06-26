@@ -1,8 +1,8 @@
 # L0 System Requirements — V2.0 ("Sight" Increment)
 
 ## Document Control
-- Version: 0.3
-- Status: Draft
+- Version: 0.3.1
+- Status: Draft (baselined)
 - Applies to: V2.0 increment, SITL + Gazebo simulation phase only
 - Last updated: 2026-05-08
 
@@ -33,7 +33,7 @@
 | L0-MIS-05 | The reasoning layer SHALL reason over a distilled map view derived from the world model and SHALL NOT be given raw camera frames. | §1, §3 |
 | L0-MIS-06 | The system SHALL invoke the reasoning layer at decision points, not continuously or on a timer. | §2, §3 |
 | L0-MIS-07 | The system SHALL provide accumulated decision and world context to the reasoning layer at each invocation. | §2, §11 |
-| L0-MIS-08 | The system SHALL autonomously return to launch and land when the reasoning layer declares the mission objective satisfied, or on operator abort. | §11.1, §12 |
+| L0-MIS-08 | The system SHALL autonomously return to launch and land when the reasoning layer declares the mission objective satisfied. (Operator-initiated abort is governed by SAF-07.) | §11.1, §12 |
 
 ## 2. Perception (PER)
 
@@ -132,7 +132,7 @@
 |---|---|---|
 | L0-ACT-01 | The system SHALL conclude each completed observation with a reasoning-layer action on the target: validate, reject, or inconclusive. | §7, §11.1 |
 | L0-ACT-02 | Each observed target's action outcome SHALL be recorded as a first-class result with validate/reject/inconclusive (hit / miss / abstention) semantics for grading (scoring path per SIM-04). | §11.3, §12.1 |
-| L0-ACT-03 | When an observation terminates without meeting the validate or reject criteria, the system SHALL permit a bounded number of re-observations of the same target; once that bound is exhausted it SHALL record the target as inconclusive, defer it, and resume the mission. The system SHALL NOT stall on an unresolved target. | §11.2, §11.3 |
+| L0-ACT-03 | When an observation terminates without meeting the validate or reject criteria, the system SHALL permit a bounded number of re-observations of the same target; once that bound is exhausted it SHALL record the target as inconclusive, defer it, and resume the mission. | §11.2, §11.3 |
 
 ## 12. Map & Rendering (MAP)
 
@@ -176,3 +176,4 @@
 - Reasoning-backend pluggability is treated as a design quality (architecture arm), not an L0 requirement.
 - The stabilized-nadir-before-active-pointing validation sequence is an implementation/verification-plan item (right arm of the V), not an L0 requirement.
 - Host separation of the flight stack from the simulation host (the deployment topology behind L0-SIM-01) is a design/architecture-arm concern, not an L0 requirement.
+- L1 cleanup (non-blocking): single-source the detection-retention wording shared by EVT-02 and EVT-03 when deriving lower-level requirements.
