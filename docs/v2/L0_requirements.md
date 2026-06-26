@@ -1,7 +1,7 @@
 # L0 System Requirements — V2.0 ("Sight" Increment)
 
 ## Document Control
-- Version: 0.1
+- Version: 0.2
 - Status: Draft
 - Applies to: V2.0 increment, SITL + Gazebo simulation phase only
 - Last updated: 2026-05-08
@@ -45,6 +45,7 @@
 | L0-PER-06 | The system SHALL expire or flag stale tracks so out-of-date world state is not presented as current. | §11.2 |
 | L0-PER-07 | The system SHALL estimate kinematic state (velocity) for slow-moving tracked targets. | §7 |
 | L0-PER-08 | Geo-location accuracy SHALL meet a bound sufficient for the reasoning layer to act on (value TBD, derived at lower level). | §10 |
+| L0-PER-09 | The system SHALL ground prior-map features against the camera view — confirming an expected feature is present beneath the aircraft — and flag when it is not. | §7, §11.2 |
 
 ## 3. Sensor Tasking / Attention (TSK)
 
@@ -53,7 +54,7 @@
 | L0-TSK-01 | The reasoning layer SHALL be able to task the sensor to observe a specific track held in the registry. | §6 |
 | L0-TSK-02 | The system SHALL carry out an observation as delegated closed-loop control — the aircraft orbiting the target and the sensor holding it centered — without reasoning-layer involvement for the duration of the loop. | §6, §11 |
 | L0-TSK-03 | The system SHALL keep the orbit and the sensor centered on a slow-moving target's live, continuously-updated position throughout an observation. | §7 |
-| L0-TSK-04 | Every observation SHALL have a defined termination condition. | §10, §11.3 |
+| L0-TSK-04 | Every observation SHALL have a defined, bounded termination condition, guaranteed to fire even when the target outcome is undecided. | §10, §11.3 |
 | L0-TSK-05 | The system SHALL escalate to the reasoning layer when an observation cannot continue, including when the target is lost or becomes un-observable. | §6, §11.2 |
 | L0-TSK-06 | The system SHALL conduct at most one observation at a time. | §11.2 |
 | L0-TSK-07 | Sensor-tasking and target-selection references issued by the reasoning layer SHALL be symbolic registry references, not pixel coordinates or appearance descriptions. | §6 |
@@ -96,7 +97,7 @@
 |---|---|---|
 | L0-LOG-01 | The system SHALL log every reasoning decision together with its issued command and the reasoning behind it. | §11, §12 |
 | L0-LOG-02 | The system SHALL log perception output (detections and tracks) separately from reasoning decisions, so the two can be reviewed independently. | §12.2 |
-| L0-LOG-03 | The system SHALL archive, per run, the mission configuration (objective, prompts, scenario reference) together with the decision and perception logs, the imagery the system reasoned over, and the mission outcome — sufficient to reconstruct and review the run. | §12.7, §12.2 |
+| L0-LOG-03 | The system SHALL archive, per run, the mission configuration (objective, prompts, scenario reference) together with the decision and perception logs, the imagery the system reasoned over, and the mission outcome (including each observed target's validate/reject/inconclusive result) — sufficient to reconstruct and review the run. | §12.7, §12.2 |
 | L0-LOG-04 | All logged decisions and perception outputs SHALL be timestamped and mutually correlatable, so the perceived world-state and the decisions taken can be aligned in time during review. | §12.2, §12.4 |
 
 ## 9. Simulation & Test (SIM)
@@ -106,7 +107,33 @@
 | L0-SIM-01 | The flight stack (perception + reasoning) SHALL run on flight-representative edge hardware, separate from the simulation host. | §10, §12 |
 | L0-SIM-02 | The system SHALL support authored scenarios with placed, perceivable entities (static or slow-moving) in a 3D world. | §12 |
 | L0-SIM-03 | Scenarios SHALL be reproducible so runs are comparable across runs. | §12.2 |
-| L0-SIM-04 | The system SHALL support a held-out scoring path comparing perceived world-state against authored ground-truth without exposing that truth to the system. | §12.1 |
+| L0-SIM-04 | The system SHALL support a held-out scoring path comparing perceived world-state and target action outcomes against authored ground-truth without exposing that truth to the system. | §12.1 |
+
+## 10. Mission Execution / Navigation (NAV)
+
+| ID | Requirement | Trace |
+|---|---|---|
+| L0-NAV-01 | The system SHALL support missions that reference a feature carried in the prior map and search along or within it. | §7 |
+| L0-NAV-02 | The system SHALL bootstrap navigation toward a referenced feature using the prior reference map. | §7, §11.1 |
+| L0-NAV-03 | The system SHALL navigate to execute the mission objective by reasoning over the map view, issuing navigation commands at routine decision points. | §7, §11.1 |
+| L0-NAV-04 | The system SHALL use perception-grounding as advisory input to navigation; GPS and the prior reference map SHALL remain authoritative for flight. | §7 |
+| L0-NAV-05 | The system SHALL surface unconfirmed-feature conditions to the reasoning layer and escalate on persistent non-confirmation. | §11.2 |
+
+## 11. Action / Loop Closure (ACT)
+
+| ID | Requirement | Trace |
+|---|---|---|
+| L0-ACT-01 | The system SHALL conclude each completed observation with a reasoning-layer action on the target: validate, reject, or inconclusive. | §7, §11.1 |
+| L0-ACT-02 | Each observed target's action outcome SHALL be recorded and gradeable against held-out ground-truth (validate/reject as hit or miss, inconclusive as abstention). | §11.3, §12.1 |
+
+## 12. Map & Rendering (MAP)
+
+| ID | Requirement | Trace |
+|---|---|---|
+| L0-MAP-01 | The system SHALL maintain a prior reference map providing standing geography (roads, terrain, named features) available from mission start. | §3 |
+| L0-MAP-02 | The map view presented to the reasoning layer SHALL be a schematic, legible rendering (clean features, minimal clutter), not a raster map. | §3 |
+| L0-MAP-03 | The map view SHALL label features the system legitimately knows (prior-map features and perception-confirmed detections); label rendering SHALL be selectable to support with/without-labels experimentation. | §3 |
+| L0-MAP-04 | Coordinate computation (geo-projection and command execution) SHALL use full-fidelity geometry, not the schematic map view. | §3 |
 
 ---
 
@@ -115,7 +142,7 @@
 | Category | Prefix | Count |
 |---|---|---|
 | Mission & Reasoning | MIS | 8 |
-| Perception | PER | 8 |
+| Perception | PER | 9 |
 | Sensor Tasking / Attention | TSK | 7 |
 | Decision Triggers | EVT | 2 |
 | Safety & Degradation | SAF | 7 |
@@ -123,9 +150,13 @@
 | Integrity | INT | 1 |
 | Observability & Logging | LOG | 4 |
 | Simulation & Test | SIM | 4 |
-| **Total** | | **43** |
+| Mission Execution / Navigation | NAV | 5 |
+| Action / Loop Closure | ACT | 2 |
+| Map & Rendering | MAP | 4 |
+| **Total** | | **55** |
 
 ## Open Items (to resolve at lower levels)
 - **L0-PER-08** — geo-location accuracy bound is TBD; to be quantified when L1 requirements are derived (the ConOps sets it qualitatively via a "forgiving consumer").
+- **L0-ACT-01** — the validate / reject criteria and the inconclusive boundary are TBD; to be defined at the lower level.
 - Reasoning-backend pluggability is treated as a design quality (architecture arm), not an L0 requirement.
 - The stabilized-nadir-before-active-pointing validation sequence is an implementation/verification-plan item (right arm of the V), not an L0 requirement.
