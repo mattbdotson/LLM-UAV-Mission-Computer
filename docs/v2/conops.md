@@ -1,7 +1,7 @@
 # Concept of Operations — V2.0 ("Sight" Increment)
 
 ## Document Control
-- Version: 0.2
+- Version: 0.3
 - Status: Draft
 - Applies to: V2.0 increment, SITL + Gazebo simulation phase only
 - Last updated: 2026-05-08
@@ -159,7 +159,7 @@ This vignette describes how a person stands up and runs a V2.0 SITL session. It 
 
    The self-imposed constraint is that the flight stack runs on **aircraft-representative edge hardware**, not on the workstation's resources. This is deliberate discipline: it would be easier to run perception and reasoning on the dev machine's GPU, but that would let the simulation lie about whether the autonomy is feasible within an airframe's compute, power, and memory budget. By constraining the flight stack to edge-class hardware from the start, the sim stays honest about flight viability — what works in SITL is what could work onboard. The edge tier is treated as a *role*, not a single fixed box: it is the compute that would fly, and it may comprise one or more edge units as the perception + reasoning workload demands.
 
-3. **Launch the mission.** The operator arms and launches; the aircraft takes off and begins flying the objective autonomously.
+3. **Launch the mission.** Before arming, the system confirms the required reasoning and perception services report healthy (reasoning backend reachable and returning a well-formed response within a timeout; perception producing frames/heartbeat) — a mission does not launch otherwise. The operator then arms and launches; the aircraft takes off and begins flying the objective autonomously.
 
 4. **Watch autonomous operation.** As the aircraft flies, it perceives the world through its sensors, accumulates world-state, and the reasoning layer makes mission decisions. The operator observes two distinct things side by side: **what the system *perceived*** (detections/tracks on the map) and **what the system *decided*** (the command stream with its reasoning).
 
