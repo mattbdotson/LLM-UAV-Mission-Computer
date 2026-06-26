@@ -1,7 +1,7 @@
 # Concept of Operations — V2.0 ("Sight" Increment)
 
 ## Document Control
-- Version: 0.1
+- Version: 0.2
 - Status: Draft
 - Applies to: V2.0 increment, SITL + Gazebo simulation phase only
 - Last updated: 2026-05-08
@@ -13,7 +13,7 @@
 
 ## 1. Increment Purpose
 
-V2.0 gives the system sight. V1.0 reasons over a synthetic top-down map; V2.0 adds a gimbaled onboard (simulated) camera and a perception pipeline that turns what the aircraft sees into structured, geo-located inputs the reasoning layer can use. The 2B VLM is never asked to interpret raw, unlabeled camera frames — that is the perception layer's job; the VLM continues to reason over the distilled map view, as it did in V1.0.
+V2.0 gives the system sight. V1.0 reasons over a synthetic top-down map; V2.0 adds a gimbaled onboard (simulated) camera and a perception pipeline that turns what the aircraft sees into structured, geo-located inputs the reasoning layer can use. The 2B VLM is never asked to interpret raw, unlabeled camera frames — that is the perception layer's job; the VLM reasons over a distilled, deliberately-legible map view (§3), not raw imagery.
 
 ## 2. Operational Context
 
@@ -26,9 +26,15 @@ The system is an autonomous fixed-wing UAV capability in which a vision-language
 
 The layers are logical, not physical. The reasoning and perception layers run on flight-representative edge hardware; the mission-management harness — and, in this phase, the simulated autopilot and world — run on the workstation. The boundaries between the layers are logical, so the same stack would carry onto a real airframe with only the simulated layers replaced by reality.
 
-## 3. Core Operational Idea — Perception and Reasoning Are Separate Layers
+## 3. Core Operational Idea — Separate Layers Over a Legible Map
 
-A specialized vision model performs continuous perception; the VLM stays event-driven and reasons over a distilled view of the resulting world model — the map view. The VLM never touches raw frames.
+A specialized vision model performs continuous perception; the VLM stays event-driven and reasons over a distilled view of the resulting world model — the **map view**. The VLM never touches raw frames.
+
+**The reference map and the world model.** The map view is built on a **prior reference map** — standing geography (roads, terrain, named features) known before the flight, the same kind of public map data any real aircraft would carry. The reference map is *not* scenario ground-truth and does not violate the no-answer-key invariant (§9): it tells the system where the *road* is, never where the *targets* are. Perception writes onto this substrate — confirming and grounding the prior map against what the camera actually sees, and adding the dynamic content the map lacks (targets, tracks). The accumulated result is the world model.
+
+**Legibility is the point — V1's hardest failure.** In V1.0 the VLM was handed a raw, cluttered map raster and asked to do *two* jobs at once: interpret the imagery (find the road, identify a junction) *and* reason about the mission. It was capable at the reasoning and unreliable at the interpretation. V2.0 removes the interpretation burden from the VLM: the **map view is rendered schematically** — roads as clean lines from map data, high contrast, minimal clutter — and **features the system legitimately knows are labeled** (prior-map roads; perception-detected targets). A 2B model reads a label far more reliably than it recognizes a shape, and the no-answer-key invariant permits labeling anything legitimately known (it withholds only unperceived scenario truth). Whether labels are shown is a rendering choice and a research knob — runs with and without labels measure how much of the VLM's competence is spatial reasoning versus label-reading.
+
+**NavMap vs map view.** Two renderings of the world model serve two consumers: a high-fidelity **NavMap** carries the precise geometry and coordinate math (used by the executor and geo-projection); the **map view** is the deliberately-schematic, labeled, VLM-legible rendering the reasoning layer sees. They derive from the same world model; they differ in fidelity and audience.
 
 ## 4. Primary Actors / External Entities
 
@@ -60,11 +66,17 @@ The VLM may direct the sensor at the intent level (`observe {track_id}`), expres
 
 ## 7. Initial Capability Scope
 
-Target and landmark detection first — detections *write to the map* and stay *out of the flight-safety loop*. The aircraft may reason and navigate using detected features, but perception never commands flight control directly in this increment. Observed targets may be **slow-moving**: the registry maintains kinematic tracks, and the autopilot orbit re-centers on a target's live position.
+**Primary mission type — feature-referenced search.** The canonical V2.0 mission is "search along (or within) a referenced feature" — e.g., *"search along the highway and report any vehicles."* Pure point-to-point navigation is the degenerate case. The mission objective names a feature carried in the prior reference map; the system bootstraps from that map to find and follow the feature.
+
+**The detect → observe → act cycle.** During mission execution the system runs a closing cycle: perception **detects** candidate targets; the VLM may **observe** one (delegated orbit-and-hold, §6); and at the end of an observation the VLM takes an **action** on the target — **validate** it (confirm as a target of interest and record/report it) or **reject** it (dismiss). The validate/reject criteria are TBD, and a third *inconclusive* outcome is possible. The cycle's outcome is the mission-meaningful product for each target.
+
+**Perception's two jobs.** Perception (a) **detects and tracks targets** and (b) **aids navigation** by grounding the prior map — confirming the aircraft is over the expected feature and surfacing where reality and the prior map diverge. Both write to the map. Crucially, perception's navigation role is **advisory**: it informs the VLM's where-to-fly decisions, while GPS and the prior map remain authoritative for flight. Perception never commands flight control and stays *out of the flight-safety loop* in this increment.
+
+**Slow movers.** Observed targets may be **slow-moving**: the registry maintains kinematic tracks, and the autopilot orbit re-centers on a target's live position.
 
 ## 8. Explicitly Deferred
 
-- GPS-denied navigation (map-matching), terrain following, and forward-looking acquisition — all move the camera *into* the safety loop; separate, later effort.
+- GPS-denied navigation (perception as the authoritative position source via map-matching), terrain following, and forward-looking acquisition — all move the camera *into* the safety loop; separate, later effort. (Distinct from V2.0's *advisory* perception-grounding in §7, where GPS and the prior map remain authoritative.)
 - Fast-moving-target pursuit (lead/intercept geometry) — beyond the orbit-with-re-centering maneuver.
 - Track *modes* (whether `observe` is a transient command or a sustained mission state).
 - Multi-camera arrays / sensor fusion, stereo ranging.
@@ -85,43 +97,53 @@ Target and landmark detection first — detections *write to the map* and stay *
 
 ---
 
-## 11. Operational Vignette (System / Mission View) — Patrol, Detect, Observe a Slow-Moving Ground Target
+## 11. Operational Vignette (System / Mission View) — Search Along a Feature, Detect, Observe, Act
 
 This vignette describes the *aircraft's* behavior during a mission. The operator-side counterpart — how a person stands up and runs a SITL session — is in Section 12.
 
+**Mission objective (natural language):** *"Search along the Monaro Highway and report any vehicles you find."*
+
 ### 11.1 Nominal Case
 
-1. **Mission underway.** VLM navigates the patrol as in V1.0. Perception service runs on the edge compute alongside llama-server; gimbal in stabilized-nadir; boresight rangefinder and laser altimeter reporting range and AGL.
-2. **Continuous perception (VLM idle).** Perception detects ground features, geo-locates each from aircraft pose and range — boresight range for a centered detection, ground-plane projection (using altimeter AGL) otherwise — and writes geodetic tracks (class, confidence, position, velocity, uncertainty) to the registry. The reasoning layer is not involved.
-3. **Detection interrupt.** A track crosses a class/confidence threshold → registry raises `detection` → interrupts the current leg and wakes the planner mid-flight.
-4. **VLM assessment.** Planner composes the VLM's map view (map + current tracks, perception labels permitted); VLM reasons "investigate or ignore?" → emits `observe {track_id}` or `continue`.
-5. **Tasking expansion (deterministic, no VLM).** The executor expands the single `observe track-7` intent into delegated control — the aircraft orbits track-7's live position and the gimbal holds the target on it — with no further VLM involvement. The rangefinder now measures range-to-target each frame.
-6. **Observation.** Aircraft orbits the slowly-moving target, the orbit following the target's live position; the gimbal holds the target; multi-bearing, ranged observations refine its position/velocity and shrink uncertainty.
-7. **Termination & resolution.** A defined termination condition ends the observation (mechanism TBD) → the delegated orbit-and-gimbal control is released → VLM decides next: log and resume patrol, or RTL.
+1. **Mission start — compose the reference map and bootstrap.** The harness composes the VLM's map view: a schematic, labeled reference map — roads drawn as clean lines from prior map data, the named search feature (the highway) labeled, with coordinate axes, compass, and the aircraft's position marked — not a raster tile. Reading the labeled feature off the clean map, the VLM issues its first navigation command toward it. *(Bootstrap: the feature's approximate location comes from the prior reference map.)*
+2. **Transit to the feature.** The VLM navigates toward the highway; the autopilot flies the commanded route under GPS. Perception runs throughout (gimbal stabilized-nadir; rangefinder and altimeter reporting), with nothing of interest yet.
+3. **Search along the feature.** Reaching the highway, the VLM follows it with successive navigation commands, reading the clean labeled road off the map view at each routine decision point. Perception continuously (a) **grounds the prior map** — confirming the aircraft is over the expected feature — and (b) **scans for targets**, writing detections to the registry as clean, labeled marks on the map view. Perception's navigation input is advisory; GPS and the prior map remain authoritative for flight.
+4. **Detection interrupt.** Perception detects a vehicle near the highway with sufficient confidence → the registry raises `detection` → the search is interrupted and the VLM is woken mid-leg.
+5. **VLM assessment.** Reasoning over the updated map view (schematic map + the labeled detection), the VLM decides investigate-or-continue → emits `observe {track_id}` or `continue`.
+6. **Observe (delegated).** The executor expands `observe track-7` into delegated control — the aircraft orbits the target's live position and the sensor holds it — with no reasoning-layer involvement during the loop; the rangefinder ranges the target each frame and multi-bearing observations shrink its uncertainty. The observation runs until its termination condition is met.
+7. **Action — validate or reject (loop closure).** With the observation complete, the VLM takes a closing action on the target: **validate** it (confirm as a target of interest and record/report it per the objective) or **reject** it (dismiss as not of interest). Validate-vs-reject criteria are TBD. This closes the detect → observe → act cycle and produces the mission-meaningful outcome for that target.
+8. **Resume or complete.** The VLM resumes the search along the highway; when the objective is satisfied it commands RTL, and the aircraft returns and lands.
 
 ### 11.2 Off-Nominal Cases
 
+**Search-phase:**
+
+- **Feature not confirmed below (prior-map mismatch / off-course).** *Trigger:* perception fails to confirm the expected feature beneath the aircraft (prior-map error, GPS drift, or off course). *Behavior:* because perception is advisory, the system surfaces this to the VLM ("expected feature not confirmed at current position"); the VLM may correct its route. *Resolution:* persistent non-confirmation escalates (re-plan or RTL).
+- **Bootstrap ambiguity.** *Trigger:* the VLM cannot identify the referenced feature on the map view at start. *Behavior / Resolution:* fall back to a safe default (hold/RTL), or request operator clarification.
+
+**Observe / act:**
+
+- **Inconclusive observation.** *Trigger:* an observation reaches its termination condition but the evidence meets neither the validate nor the reject criteria — the target stays ambiguous. *Behavior:* the VLM may extend the observation a **bounded** number of times; if still ambiguous, the target is recorded as **inconclusive** and deferred. The mission must not stall on an unresolved target. *Resolution:* the inconclusive target is logged and left flagged in the registry; the VLM resumes the search.
 - **Ambiguous classification.** *Trigger:* a track's class/confidence sits near threshold. *Behavior:* either it stays sub-threshold (perception keeps watching, no interrupt), or it raises and the VLM may task an `observe` specifically to gather more views and let perception firm up the class. *Resolution:* confirmed → nominal; stays ambiguous → VLM `continue`s.
-
 - **High position uncertainty.** *Trigger:* a real detection with a wide position covariance (off-axis, no boresight range, bad pose instant). *Behavior:* it registers *with* its uncertainty, never as a false-precise point; the VLM may receive it flagged low-confidence-position. *Resolution:* observation (orbit + boresight ranging) is the action that *reduces* the uncertainty — high uncertainty is a reason to observe, not a failure.
-
 - **Multiple candidates.** *Trigger:* several tracks cross threshold together. *Behavior:* VLM selects one symbolically (`observe track-7`); the others persist in the registry. Only one observation runs at a time (one gimbal, one aircraft). *Resolution:* VLM may address deferred candidates sequentially.
-
 - **Track lost during observation.** *Trigger:* gimbal/tracker loses the target (terrain occlusion, target out-slews the gimbal, drops below detectability). *Behavior:* perception attempts short-term re-acquisition (coast on last velocity, local search) without waking the VLM. *Resolution:* re-acquired → resume; sustained loss → `track_lost` event → VLM decides search / abandon / RTL. Mirrors STUCK.
-
 - **Target outpaces the orbit.** *Trigger:* target speed approaches the orbit-able limit, or it exits map bounds. *Behavior:* executor detects the orbit geometry degrading and does **not** attempt pursuit (fast-mover intercept is out of scope) → raises `track_lost` (or an `observation_ended` variant). *Resolution:* VLM abandons the observation and resumes, or RTLs.
 
-- **Perception fault.** *Trigger:* perception crashes, stalls, or stops producing detections. *Behavior:* system degrades to "no detections" — no `detection` events fire; aircraft continues on V1.0 map-based behavior. If it faults mid-observation, the delegated control loses its registry feed → executor fails safe (holds the last commanded orbit) and escalates to the VLM. *Invariant:* must not stall the MAVLink drain or take down the Mission Manager.
+**System:**
 
+- **Perception fault.** *Trigger:* perception crashes, stalls, or stops producing detections. *Behavior:* system degrades to "no detections" — no `detection` events fire; the aircraft continues navigating on the prior reference map. If it faults mid-observation, the delegated control loses its registry feed → executor fails safe (holds the last commanded orbit) and escalates to the VLM. *Invariant:* must not stall the MAVLink drain or take down the Mission Manager.
 - **Stale registry data.** *Trigger:* a referenced track goes stale (no recent perception updates) while the VLM is reasoning over it. *Behavior:* registry TTL/decay flags or expires stale tracks; the VLM's map view does not present stale tracks as current. *Resolution:* an actively-observed track going stale is treated as `track_lost`.
-
 - **Detection in an inadmissible state.** *Trigger:* a `detection` fires during TAKEOFF, RETURNING, or an already-running observation. *Behavior:* the interrupt is admissible only in mission states where acting makes sense (ON_TASK, and TRANSIT TBD); it is suppressed or deferred during TAKEOFF/RETURNING, and a new detection mid-observation is registered but does **not** preempt the current one. *Resolution:* deferred detections persist in the registry for later consideration.
 
 ### 11.3 Notes Forward to Requirements
 
 - The `detection` event requires an admissibility gate tied to mission state — it is not a global interrupt.
-- **Target-outpaces-orbit** and **track-lost** converge on the same escalation path; they may collapse into a single `track_lost` / `observation_ended` event carrying a reason code rather than two distinct events.
-- Every observation requires a defined termination condition; the *mechanism* is deferred (track-mode question), but the *requirement* is firm.
+- **Target-outpaces-orbit** and **track-lost** converge on the same escalation path; they may collapse into a single `track_lost` / `observation_ended` event carrying a reason code.
+- Every observation requires a defined, **bounded** termination condition — guaranteed to fire even when the outcome is undecided (so detect → observe → inconclusive cannot loop forever).
+- The closing **action** (validate / reject / inconclusive) is a first-class mission outcome: it must be recorded per target and is gradeable against held-out ground-truth (an inconclusive is an abstention, distinct from a hit or a miss).
+- **Perception-aided navigation is advisory** — GPS and the prior reference map remain authoritative; perception informs where-to-fly decisions but never commands or anchors flight.
+- The map view must be **rendered for VLM legibility** (schematic, labeled), distinct from the high-fidelity NavMap used for coordinate math.
 
 ---
 
