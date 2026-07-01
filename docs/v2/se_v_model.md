@@ -50,6 +50,6 @@ The dotted links are the point of the V: each left-arm rung is verified/validate
 | Implementation (vertex) | — | ⬜ | — |
 
 ## Current position
-Three left-arm rungs are complete. The **System Architecture** rung selected **Sentinel-Spine** from a five-candidate paradigm-divergent exploration (generate → adversarially judge → synthesize), verified the closure of the review findings, and allocated all 62 L0 requirements to components. Supporting artifacts: [architecture_options.pdf](architecture_options.pdf) (the option comparison) and [l0_allocation.html](l0_allocation.html) (Sentinel-Spine vs Skywriter allocation).
+Three left-arm rungs are complete. The **System Architecture** rung selected **Sentinel-Spine** from a five-candidate paradigm-divergent exploration (generate → adversarially judge → synthesize), verified the closure of the review findings, and allocated all 62 L0 requirements to components. Supporting artifact: [architecture_options.pdf](architecture_options.pdf) (the five-candidate option comparison). The full per-requirement allocation to Sentinel-Spine components is **Appendix A** of [architecture.md](architecture.md).
 
 **Next rung: Detailed Design / L1+ Requirements** — decompose each Sentinel-Spine component, quantify the deferred bounds (the L0 Open Items and the architecture's open decisions), and apply the three required hardening grafts (de-block the executor, spine-resident observation watchdog, first-class `reasoning_ready` with an overlap policy).
