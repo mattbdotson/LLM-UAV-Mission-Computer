@@ -11,8 +11,8 @@ flowchart TB
         direction TB
         A["ConOps ✅"]:::done
         B["L0 System Requirements ✅"]:::done
-        C["System Architecture"]:::next
-        D["Detailed Design / L1+ Requirements"]:::todo
+        C["System Architecture ✅"]:::done
+        D["Detailed Design / L1+ Requirements"]:::next
     end
 
     E["Implementation"]:::todo
@@ -45,11 +45,11 @@ The dotted links are the point of the V: each left-arm rung is verified/validate
 |---|---|---|---|
 | Concept of Operations | [conops.md](conops.md) — v0.3 | ✅ Complete | Validation / Acceptance |
 | System Requirements (L0) | [L0_requirements.md](L0_requirements.md) — v0.3.1, baselined | ✅ Complete (SE-reviewed) | System Verification |
-| System Architecture | — | ⬜ **Next** | Integration Test |
-| Detailed Design / L1+ Requirements | — | ⬜ | Unit Test |
+| System Architecture | [architecture.md](architecture.md) — v0.1 (Sentinel-Spine) | ✅ Complete | Integration Test |
+| Detailed Design / L1+ Requirements | — | ⬜ **Next** | Unit Test |
 | Implementation (vertex) | — | ⬜ | — |
 
 ## Current position
-Both left-arm rungs through L0 are complete. **L0 (62 requirements, 12 categories)** was put through a multi-agent SE review (dimensional fan-out → adversarial verify → synthesis) and a closure pass; all findings were resolved and it is baselined at v0.3.1 with full ConOps traceability.
+Three left-arm rungs are complete. The **System Architecture** rung selected **Sentinel-Spine** from a five-candidate paradigm-divergent exploration (generate → adversarially judge → synthesize), verified the closure of the review findings, and allocated all 62 L0 requirements to components. Supporting artifacts: [architecture_options.pdf](architecture_options.pdf) (the option comparison) and [l0_allocation.html](l0_allocation.html) (Sentinel-Spine vs Skywriter allocation).
 
-**Next rung: System Architecture** — decompose the autonomy stack into components and allocate the L0 requirements to them. This is where the deferred design decisions (registry location / IPC boundary, gimbal command path, frame transport) are made — now properly downstream of a reviewed requirements baseline.
+**Next rung: Detailed Design / L1+ Requirements** — decompose each Sentinel-Spine component, quantify the deferred bounds (the L0 Open Items and the architecture's open decisions), and apply the three required hardening grafts (de-block the executor, spine-resident observation watchdog, first-class `reasoning_ready` with an overlap policy).
